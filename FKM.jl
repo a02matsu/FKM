@@ -747,7 +747,7 @@ end
 function HMC(NEW::Int, Nc::Int, gamma::Float64, q::Float64, u::Float64, niter::Int, step_size::Float64, Ntau::Int,configbody="config")
     naccept = 1 # 初期化
     skip_step = 10 # このステップごとに測定値を格納する
-    print_step = 5000 # このステップごとに標準出力する
+    print_step = 10000 # このステップごとに標準出力する
     Dtau = step_size / Ntau
     Uconf = [] # Uのhistory
     #phases = [[] for _ in 1:RANK]
@@ -840,7 +840,7 @@ end
 function HMC(NEW::Int, Nc::Int, gamma::Float64, q::Float64, niter::Int, step_size::Float64, Ntau::Int,configbody="config")
     naccept = 1 # 初期化
     skip_step = 10 # このステップごとに測定値を格納する
-    print_step = 5000 # このステップごとに標準出力する
+    print_step = 10000 # このステップごとに標準出力する
     Dtau = step_size / Ntau
     #phases = [[] for _ in 1:RANK] # Uの固有値のhistory
     Uconf = [] # Uのhistory
