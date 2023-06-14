@@ -7,7 +7,7 @@ using Distributed
 Ns = [4,8,16]
 Gammas = [1024.0]
 
-NPROCS = 6 
+NPROCS = 18 
 addprocs(NPROCS)
 nworkers()
 @everywhere include("Simulation.jl")
@@ -36,8 +36,8 @@ for g in Gammas
     @everywhere begin
       global Nc = $N
       global gamma = $g
-    end
-    @everywhere begin
+    #end
+    #@everywhere begin
       #  using .Simulation
       #  using .Measurement: findPT
       # パラメータ設定とデータを取るQの設定
@@ -51,12 +51,14 @@ for g in Gammas
 
       # まずは大雑把に
       Q = Q_regular(qc,qcd)
-      futures = parallel_simulation(Nc,gamma,Q)
-      for f in futures
-        wait(f)
-      end
-      # Nc=16のときは細かく取る
-      if Nc == 16 
+    end
+    futures = parallel_simulation(Nc,gamma,Q)
+    for f in futures
+      wait(f)
+    end
+    # Nc=16のときは細かく取る
+    if Nc == 16 
+      @everywhere begin
         # 相転移点をみつける
         Qc1, Qc2 = findPT(Nc, gamma)
         qc = []
@@ -68,11 +70,11 @@ for g in Gammas
         println(sof.(qc))
         println(sof.(qcd))
         Q = Q_fine(qc,qcd)
-  
-        # 相転移点まわりを取る
-        Q = Q_fine(qc,qcd)
-        parallel_simulation(Nc,gamma,Q)
       end
+  
+      # 相転移点まわりを取る
+      #Q = Q_fine(qc,qcd)
+      parallel_simulation(Nc,gamma,Q)
     end
   end
 end
