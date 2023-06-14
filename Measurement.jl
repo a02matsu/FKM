@@ -122,7 +122,8 @@ end
 # 相転移点を見つける
 function findPT(Nc, gamma, epsilon=10^(-3),epsilon2=10^(-4))
   # CSVファイルを見つける
-  files_org = glob("Phases/phases_N$(Nc)g$(gamma)*u00.csv")
+  gamma_int = Int(gamma)
+  files_org = glob("Phases/phases_N$(Nc)g$(gamma_int)*u00.csv")
   # qを抽出し、ファイルを昇順にソート
   #files = sort(files_org, by=file -> parse(Int, match(r"q(\d+)u", basename(file)).captures[1]))
   files = sort(files_org, by=file -> read_q(file))
@@ -184,7 +185,7 @@ end
 # gammaを固定してプロット
 function plot_gamma(phys, gamma)
     # CSVファイルを見つける
-    files_org = glob("Obs/$(phys)_N*g$(gamma)u00.csv")
+    files_org = glob("Obs/$(phys)_N*g$(Int(gamma))u00.csv")
     # Nを抽出し、ファイルを昇順にソート
     files = sort(files_org, by=file -> parse(Int, match(r"_N(\d+)g", basename(file)).captures[1]))
     # プロットを作成
@@ -196,8 +197,8 @@ function plot_gamma(phys, gamma)
         # CSVファイルからデータを読み込む
         df = DataFrame(CSV.File(file))
         # ファイル名からgammaを取得
-        gamma_str = match(r"g(\d+)u00", file).captures[1]
-        gamma = parse(Int, gamma_str)
+        #gamma_str = match(r"g(\d+)u00", file).captures[1]
+        #gamma = parse(Int, gamma_str)
         #gamma = gamma_int / 100
         Nc = match(r"_N(\d+)", file).captures[1]
         # 最後のNcが保存されるようにする
@@ -217,7 +218,7 @@ function plot_gamma(phys, gamma)
     vline!(plt, [sb1,sb2], linestyle=:dash, linecolor=:black, label="")
     # 相転移の位置
     # 一番大きいNcのデータから読み取る
-    Qc, Qcb = findPT(Nmax,gamma)
+    Qc, Qcb = findPT(Nmax,Int(gamma))
     for a in 1:RANK
       println(gamma," ",a," ", Qc[a], " ", Qcb[a])
       vline!(plt, ( sof.(Qc[a]) .+ sof.(Qcb[a]) ) ./ 2.0, linestyle=:dash, linecolor=ColorList[a], label="GWW $(a)")
@@ -240,7 +241,7 @@ function plot_gamma(phys, gamma)
     # プロットを表示
     display(plt)
     # プロットをファイルに保存
-    savefig(plt, "$(phys)_g$(gamma).png")
+    savefig(plt, "$(phys)_g$(Int(gamma)).png")
 end
 
 

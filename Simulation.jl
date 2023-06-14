@@ -363,35 +363,32 @@ function Q_fine(qc,dqc)
   scd = sort(sof.(dqc))
   
   S = Float64[]
-  for s in sc
-    addS(S, s+0.01,s+0.041,0.01)
-    addS(S, s+0.06,s+0.091,0.01)
-    addS(S, s-0.09,s-0.060,0.01)
-    addS(S, s-0.04,s-0.010,0.01)
+  #for s in sc
+  for i in eachindex(sc)
+    if i == 1 || ( i > 1 && sc[i] > sc[i-1]+0.05)
+      s = sc[i]
+      addS(S, s+0.01,s+0.041,0.01)
+      addS(S, s+0.06,s+0.091,0.01)
+      addS(S, s-0.09,s-0.060,0.01)
+      addS(S, s-0.04,s-0.010,0.01)
+    end
   end
   ##
-  for s in scd 
-    addS(S, s+0.01,s+0.041,0.01)
-    addS(S, s+0.06,s+0.091,0.01)
-    addS(S, s-0.09,s-0.059,0.01)
-    addS(S, s-0.04,s-0.009,0.01)
+  #for s in scd 
+  for i in eachindex(scd)
+    if i == 1 || ( i > 1 && scd[i] > scd[i-1]+0.05)
+      s = scd[i]
+      addS(S, s+0.01,s+0.041,0.01)
+      addS(S, s+0.06,s+0.091,0.01)
+      addS(S, s-0.09,s-0.059,0.01)
+      addS(S, s-0.04,s-0.009,0.01)
+    end
   end
   ##
   S = unique(S)
   Q = qof.(S)
   return Q
 end
-
-gamma = 16.0
-Nc = 4
-
-qc = [(1.0/(2*gamma-1))^(1/3)]
-sc = sof.(qc)
-scd = 1.0 .- sc
-dqc = qof.(scd)
-
-Q = Q_regular(qc,dqc)
-Q = Q_fine(qc,dqc)
 
 # realの観測量を書き出す
 function write_realvalues(filename, RV)
