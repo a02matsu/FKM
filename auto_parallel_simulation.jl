@@ -5,7 +5,7 @@
 using Distributed
 
 Ns = [4,8,16]
-Gammas = [1024.0]
+Gammas = [4.0,8.0,16.0,128.0,1024.0]
 
 NPROCS = 18 
 addprocs(NPROCS)
@@ -36,44 +36,30 @@ for g in Gammas
     @everywhere begin
       global Nc = $N
       global gamma = $g
-    #end
-    #@everywhere begin
-      #  using .Simulation
-      #  using .Measurement: findPT
-      # パラメータ設定とデータを取るQの設定
-      # qc, qcd : 大まかな相転移点の位置を表す配列
-      #gamma = 4.0
-      #Nc = 4
-      qc = [(1.0/(2*gamma-1))^(1/3)]
-      sc = sof.(qc)
-      scd = 1.0 .- sc
-      qcd = qof.(scd)
-
-      # まずは大雑把に
-      Q = Q_regular(qc,qcd)
     end
+    # CHANGE HERE (This is for TS)
+    qc = qof.[0.96*log(gamma) + 0.47,0.68*log(gamma) + 0.73]
+    qcd = qof.[0.47-0.96*log(gamma), 0.25 - 0.68*log(gamma)]
+    # まずは大雑把に
+    Q = Q_regular(qc,qcd)
     futures = parallel_simulation(Nc,gamma,Q)
     for f in futures
       wait(f)
     end
     # Nc=16のときは細かく取る
     if Nc == 16 
-      @everywhere begin
-        # 相転移点をみつける
-        Qc1, Qc2 = findPT(Nc, gamma)
-        qc = []
-        qcd = []
-        for a in 1:RANK
-          push!(qc, (Qc1[a][1] .+ Qc2[a][1]) ./ 2 )
-          push!(qcd, (Qc1[a][2] .+ Qc2[a][2]) ./ 2 )
-        end
-        println(sof.(qc))
-        println(sof.(qcd))
-        Q = Q_fine(qc,qcd)
+      # 相転移点をみつける
+      Qc1, Qc2 = findPT(Nc, gamma)
+      qc = []
+      qcd = []
+      for a in 1:RANK
+        push!(qc, (Qc1[a][1] .+ Qc2[a][1]) ./ 2 )
+        push!(qcd, (Qc1[a][2] .+ Qc2[a][2]) ./ 2 )
       end
-  
+      println(sof.(qc))
+      println(sof.(qcd))
+      Q = Q_fine(qc,qcd)
       # 相転移点まわりを取る
-      #Q = Q_fine(qc,qcd)
       parallel_simulation(Nc,gamma,Q)
     end
   end
