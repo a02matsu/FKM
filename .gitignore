@@ -6,3 +6,4 @@ Ntau/
 Conf/
 Uconfig/
 *.png
+auto_parallel_simulation_TS.jl
