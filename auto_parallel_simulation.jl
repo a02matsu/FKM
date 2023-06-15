@@ -3,12 +3,16 @@
 # 2) その結果から相転移点を割り出し
 # 3) その相転移点周辺のシミュレーションを細かく行う
 using Distributed
+include("Simulation.jl")
+include("Measurement.jl")
+using .Simulation
+using .Measurement: findPT
 
 # プロセス数
 NPROCS = 18 
 # シミュレーションのパラメータ
-Ns = [16]
-Gammas = [128.0,1024.0]
+Ns = [4,8,16]
+Gammas = [4.0,8.0,16.0,128.0,1024.0]
 
 function parallel_simulation(Nc::Int, gamma::Float64, Q::Vector{Float64}, niter=200000)
   # QをNPROCS個ずつのブロックに分割
@@ -30,18 +34,19 @@ for g in Gammas
     #################################################
     ## プロセスを追加してシミュレーションを準備
     addprocs(NPROCS)
-    @everywhere include("Simulation.jl")
-    @everywhere include("Measurement.jl")
+    for pid in workers()
+      @spawnat pid include("Simulation.jl")
+    end
     @everywhere begin
       using .Simulation
-      using .Measurement: findPT
       global Nc = $N
       global gamma = $g
     end
     #################################################
-    # CHANGE HERE (This is for TS)
-    qc = qof.([0.96*log(gamma) + 0.47, 0.68*log(gamma) + 0.73])
-    qcd = qof.([0.47-0.96*log(gamma), 0.25 - 0.68*log(gamma)])
+    # CHANGE HERE (This is for C3)
+    qc = [(2*gamma - 1)^(-1/3)]
+    scd = -sof( (2*gamma - 1)^(-1/3) ) 
+    qcd = [ qof(scd) ]
     # まずは大雑把に
     Q = Q_regular(qc,qcd)
     futures = parallel_simulation(Nc,gamma,Q)
@@ -67,11 +72,11 @@ for g in Gammas
       #################################################
       ## プロセスを追加してシミュレーションを準備
       addprocs(NPROCS)
-      @everywhere include("Simulation.jl")
-      @everywhere include("Measurement.jl")
+      for pid in workers()
+        @spawnat pid include("Simulation.jl")
+      end
       @everywhere begin
         using .Simulation
-        using .Measurement: findPT
         global Nc = $N
         global gamma = $g
       end
