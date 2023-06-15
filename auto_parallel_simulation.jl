@@ -4,15 +4,13 @@
 # 3) その相転移点周辺のシミュレーションを細かく行う
 using Distributed
 
-Ns = [4,8,16]
-Gammas = [4.0,8.0,16.0,128.0,1024.0]
-
+# プロセス数
 NPROCS = 18 
-addprocs(NPROCS)
-nworkers()
-@everywhere include("Simulation.jl")
-@everywhere include("Measurement.jl")
-@everywhere function parallel_simulation(Nc::Int, gamma::Float64, Q::Vector{Float64}, niter=200000)
+# シミュレーションのパラメータ
+Ns = [16]
+Gammas = [128.0,1024.0]
+
+function parallel_simulation(Nc::Int, gamma::Float64, Q::Vector{Float64}, niter=200000)
   # QをNPROCS個ずつのブロックに分割
   blocks = chunk(Q, nprocs())
   futures = [] # added
@@ -26,26 +24,33 @@ nworkers()
   end
   return futures
 end
-@everywhere begin
-  using .Simulation
-  using .Measurement: findPT
-end
 
 for g in Gammas
   for N in Ns
+    #################################################
+    ## プロセスを追加してシミュレーションを準備
+    addprocs(NPROCS)
+    @everywhere include("Simulation.jl")
+    @everywhere include("Measurement.jl")
     @everywhere begin
+      using .Simulation
+      using .Measurement: findPT
       global Nc = $N
       global gamma = $g
     end
+    #################################################
     # CHANGE HERE (This is for TS)
-    qc = qof.[0.96*log(gamma) + 0.47,0.68*log(gamma) + 0.73]
-    qcd = qof.[0.47-0.96*log(gamma), 0.25 - 0.68*log(gamma)]
+    qc = qof.([0.96*log(gamma) + 0.47, 0.68*log(gamma) + 0.73])
+    qcd = qof.([0.47-0.96*log(gamma), 0.25 - 0.68*log(gamma)])
     # まずは大雑把に
     Q = Q_regular(qc,qcd)
     futures = parallel_simulation(Nc,gamma,Q)
     for f in futures
       wait(f)
     end
+    # メモリ管理のためにプロセスを消去
+    rmprocs(workers())
+
     # Nc=16のときは細かく取る
     if Nc == 16 
       # 相転移点をみつける
@@ -59,8 +64,24 @@ for g in Gammas
       println(sof.(qc))
       println(sof.(qcd))
       Q = Q_fine(qc,qcd)
-      # 相転移点まわりを取る
-      parallel_simulation(Nc,gamma,Q)
+      #################################################
+      ## プロセスを追加してシミュレーションを準備
+      addprocs(NPROCS)
+      @everywhere include("Simulation.jl")
+      @everywhere include("Measurement.jl")
+      @everywhere begin
+        using .Simulation
+        using .Measurement: findPT
+        global Nc = $N
+        global gamma = $g
+      end
+      #################################################
+      futures = parallel_simulation(Nc,gamma,Q)
+      for f in futures
+        wait(f)
+      end
     end
+    # メモリ管理のためにプロセスを消去
+    rmprocs(workers())
   end
 end

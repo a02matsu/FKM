@@ -6,17 +6,16 @@ Wilson_loops(4,4,[[1],[2],[1,2]])
 
 #################################################
 # 物理量の平均値をまとめたCSVファイルを作る
+# fundamental cycleのWilson loopの平均値をまとめたCSVファイルを作る
 for phys in ["energy", "specificheat", "dC"]
-  for Nc in [16]
-    for gamma in [4]
+  for Nc in [4,8,16]
+    for gamma in [4,8,16,128,1024]
         calc_obs(phys,Nc, gamma)
+        calc_Wilson(Nc, gamma)
     end
   end
 end
 
-#################################################
-# fundamental cycleのWilson loopの平均値をまとめたCSVファイルを作る
-calc_Wilson(4,8)
 
 #################################################
 # gammaを固定したプロットを作成
