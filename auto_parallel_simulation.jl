@@ -11,8 +11,9 @@ using .Measurement: findPT
 # プロセス数
 NPROCS = 18 
 # シミュレーションのパラメータ
-Ns = [4,8,16]
+#Ns = [4,8,16]
 Gammas = [4.0,8.0,16.0,128.0,1024.0]
+Ns = [4,8]
 
 function parallel_simulation(Nc::Int, gamma::Float64, Q::Vector{Float64}, niter=200000)
   # QをNPROCS個ずつのブロックに分割
@@ -43,10 +44,10 @@ for g in Gammas
       global gamma = $g
     end
     #################################################
-    # CHANGE HERE (This is for C3)
-    qc = [(2*gamma - 1)^(-1/3)]
-    scd = -sof( (2*gamma - 1)^(-1/3) ) 
-    qcd = [ qof(scd) ]
+    # CHANGE HERE 
+    qc = [(2*gamma - 1)^(-1/3),(2*gamma-1)^(-1/4)]
+    scd = 1.0 .- sof.(qc)
+    qcd = qof.(scd)
     # まずは大雑把に
     Q = Q_regular(qc,qcd)
     futures = parallel_simulation(Nc,gamma,Q)
