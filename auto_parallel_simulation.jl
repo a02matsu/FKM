@@ -12,8 +12,8 @@ using .Measurement: findPT
 NPROCS = 18 
 # シミュレーションのパラメータ
 #Ns = [4,8,16]
-Gammas = [4.0,8.0,16.0,128.0,1024.0]
-Ns = [4,8]
+Gammas = [8.0,16.0,128.0,1024.0]
+Ns = [16]
 
 function parallel_simulation(Nc::Int, gamma::Float64, Q::Vector{Float64}, niter=200000)
   # QをNPROCS個ずつのブロックに分割
