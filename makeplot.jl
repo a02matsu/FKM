@@ -2,24 +2,23 @@ include("Measurement.jl")
 using .Measurement
 
 
-Wilson_loops(4,4,[[1],[2],[1,2]])
 
 #################################################
 # 物理量の平均値をまとめたCSVファイルを作る
 # fundamental cycleのWilson loopの平均値をまとめたCSVファイルを作る
 for phys in ["energy", "specificheat", "dC"]
-  for Nc in [4,8]
-    for gamma in [4,8,16,128,1024]
+  for Nc in [8,16]
+    for gamma in [1024,16384]
         calc_obs(phys,Nc, gamma)
         calc_Wilson(Nc, gamma)
     end
   end
 end
 
-
 #################################################
 # gammaを固定したプロットを作成
-for G in [4,8,16,128,1024]
+#for G in [4,8,16,128,1024]
+for G in [1024,16384]
   plot_gamma("energy", G)
   plot_gamma("specificheat", G)
   plot_gamma("dC", G)
