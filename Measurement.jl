@@ -13,6 +13,7 @@ using Statistics
 using DelimitedFiles
 using LinearAlgebra
 using JLD
+using StatsBase
 include("Graph.jl")
 using .Graph
 
