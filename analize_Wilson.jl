@@ -13,18 +13,31 @@ for gamma in [1024,16384]
   PhaseHist(16,gamma,cycles)
 end
 
-Qc1,err1,Qc2,err2,Q = findPT2(16,1024)
+Nc=16
+gamma=16384
+Qc1,err1,Qc2,err2,Q = findPT2(Nc,gamma)
 sc1=sof.(Qc1)
 sc2=sof.(Qc2)
 err_sc1 = abs.(sof.(Qc1 .+ err1) - sof.(Qc1))
 err_sc2 = abs.(sof.(Qc2 .+ err2) - sof.(Qc2))
-sc1 .+ sc2
+println(sc1 .+ sc2)
+println(err_sc1)
 
-plt = plot()
-scatter!(plt, Cnames, sc1, yerror=err_sc1, label="" )
-scatter!(plt, Cnames, sc2, yerror=err_sc2, label="" )
+plt = plot(size = (800, 600))  # グラフのサイズを大きくする
+scatter!(plt, 1:length(Cnames), sc1, yerror=err_sc1, label="" )
+scatter!(plt, 1:length(Cnames), sc2, yerror=err_sc2, label="" )
+xticks!(1:length(Cnames),string.(Cnames_str), rotation=90)
 ylabel!("\$ s \$")
-savefig(plt,"C_vs_sc.png")
+for x in 1:length(Cnames)
+  vline!(plt, [x], linestyle=:dash, linecolor=:black, label="")
+end
+hline!(plt, range(-4, 5, length=10), linestyle=:dash, linecolor=:black, label="")
+title!(plt, "$(NAME), \$ Nc=$(Nc), \\gamma = $(gamma) \$")
+display(plt)
+
+savefig(plt,"C_vs_sc_N$(Nc)g$(gamma).png")
+
+
 
 
 function plot_critical(Nc,gamma,cycle, cycles, Qc1, Qc2,Q)
