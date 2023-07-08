@@ -7,8 +7,8 @@ using .Measurement
 # 物理量の平均値をまとめたCSVファイルを作る
 # fundamental cycleのWilson loopの平均値をまとめたCSVファイルを作る
 for phys in ["energy", "specificheat", "dC"]
-  for Nc in [4,8]
-    for gamma in [4,8,16,128,1024]
+  for Nc in [4]#,8,16]
+    for gamma in [1073741824]
         calc_obs(phys,Nc, gamma)
         calc_Wilson(Nc, gamma)
     end
@@ -18,7 +18,8 @@ end
 #################################################
 # gammaを固定したプロットを作成
 #for G in [4,8,16,128,1024]
-for G in [1024,16384]
+#for G in [1024,16384,131072]
+for G in [1073741824]
   plot_gamma("energy", G)
   plot_gamma("specificheat", G)
   plot_gamma("dC", G)
@@ -26,7 +27,7 @@ end
 
 #################################################
 # Nを固定したプロットを作成
-for N in [16]
+ for N in [16]
   plot_N("specificheat", N)
   plot_N("dC", N)
 end

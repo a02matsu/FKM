@@ -12,8 +12,13 @@ using .Measurement: findPT
 NPROCS = 18 
 # シミュレーションのパラメータ
 #Ns = [4,8,16]
-Gammas = [8.0,16.0,128.0,1024.0]
-Ns = [16]
+#Gammas = [8.0,16.0,128.0,1024.0]
+#Gammas = [16384.0]
+Gammas = [Float64(2^30)]
+Ns = [8,16]
+#gamma = 2^30
+#sof((2*gamma)^(-1/4))
+#println(length(Q_regular([(2*gamma)^(-1/3),(2*gamma)^(-1/4)],[(2*gamma/8)^(1/3),(2*gamma/16)^(1/4)])))
 
 function parallel_simulation(Nc::Int, gamma::Float64, Q::Vector{Float64}, niter=200000)
   # QをNPROCS個ずつのブロックに分割
@@ -45,9 +50,8 @@ for g in Gammas
     end
     #################################################
     # CHANGE HERE 
-    qc = [(2*gamma - 1)^(-1/3),(2*gamma-1)^(-1/4)]
-    scd = 1.0 .- sof.(qc)
-    qcd = qof.(scd)
+    qc = [(2*gamma)^(-1/3),(2*gamma)^(-1/4)]
+    qcd = [(2*gamma/8)^(1/3),(2*gamma/16)^(1/4)]
     # まずは大雑把に
     Q = Q_regular(qc,qcd)
     futures = parallel_simulation(Nc,gamma,Q)

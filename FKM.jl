@@ -15,6 +15,7 @@ using DelimitedFiles
 using LsqFit
 using Plots
 using Printf
+using JLD
 
 # 外から見える変数
 export NV, NE, RANK, minl, OMEGA, NAME
@@ -764,15 +765,21 @@ function HMC(NEW::Int, Nc::Int, gamma::Float64, q::Float64, u::Float64, niter::I
     ## ただし、読み込んだ後はファイル名を変更してバックアップにする
     #filename = "config.txt"
     # ファイルが存在する場合
-    configfile = "$(configbody).txt"
+    #configfile = "$(configbody).txt"
+    configfile = "$(configbody).jld"
     if isfile(configfile) && NEW != 0
-        iter_init, U = read_config(Nc, configfile)
-        backup_file(configbody,"txt")
+        iter_init = load(configfile, "iter")
+        iter_init += 1
+        U = load(configfile, "Uconf")
+        backup_file(configbody,"jld")
+        #iter_init, U = read_config(Nc, configfile)
+        #backup_file(configbody,"txt")
     # ファイルは存在するけどNEW==0の場合
     elseif isfile(configfile) && NEW == 0
         iter_init = 1
         # 以前のファイルをバックアップ
-        backup_file(configbody,"txt")
+        backup_file(configbody,"jld")
+        #backup_file(configbody,"txt")
     # ファイルが存在しない、または、NEW==0の場合
     else
         iter_init = 1
@@ -804,7 +811,7 @@ function HMC(NEW::Int, Nc::Int, gamma::Float64, q::Float64, u::Float64, niter::I
         if iter % print_step == 0
             println()
             println(
-                "q:",@sprintf("%.3f",q),"\t",
+                "q:",@sprintf("%.3E",q),"\t",
                 "Ntau:",Ntau,"\t",
                 "iter:",iter_init+iter-1,"\t",
                 "|U-1|",@sprintf("%.2E", norm(U[1] * adjoint(U[1]) - Array{ComplexF64}(I, Nc, Nc), 2 )) ,"\t",
@@ -829,7 +836,13 @@ function HMC(NEW::Int, Nc::Int, gamma::Float64, q::Float64, u::Float64, niter::I
 
     #################################################
     # 最終的なconfigurationをファイルに書き出し
-    write_config(configfile, iter_init, niter, U, Nc)
+    #write_config(configfile, iter_init, niter, U, Nc)
+    jldopen(configfile, "w"; compress = true) do f 
+      f["Uconf"] = U
+      f["iter"] = iter_init+niter-1
+      #f["large_array"] = zeros(10000)
+      #save("$(config_file).jld", "Uconf", Uconf)
+    end
 
     return naccept/niter, Uconf
 end
@@ -856,15 +869,21 @@ function HMC(NEW::Int, Nc::Int, gamma::Float64, q::Float64, niter::Int, step_siz
     ## ただし、読み込んだ後はファイル名を変更してバックアップにする
     #filename = "config.txt"
     # ファイルが存在する場合
-    configfile = "$(configbody).txt"
+    #configfile = "$(configbody).txt"
+    configfile = "$(configbody).jld"
     if isfile(configfile) && NEW != 0
-        iter_init, U = read_config(Nc, configfile)
-        backup_file(configbody,"txt")
+        iter_init = load(configfile, "iter")
+        iter_init += 1
+        U = load(configfile, "Uconf")
+        backup_file(configbody,"jld")
+        #iter_init, U = read_config(Nc, configfile)
+        #backup_file(configbody,"txt")
     # ファイルは存在するけどNEW==0の場合
     elseif isfile(configfile) && NEW == 0
         iter_init = 1
         # 以前のファイルをバックアップ
-        backup_file(configbody,"txt")
+        backup_file(configbody,"jld")
+        #backup_file(configbody,"txt")
     # ファイルが存在しない、または、NEW==0の場合
     else
         iter_init = 1
@@ -896,7 +915,7 @@ function HMC(NEW::Int, Nc::Int, gamma::Float64, q::Float64, niter::Int, step_siz
         if iter % print_step == 0
             println()
             println(
-                "q:",@sprintf("%.3f",q),"\t",
+                "q:",@sprintf("%.3E",q),"\t",
                 "Ntau:",Ntau,"\t",
                 "iter:",iter_init+iter-1,"\t",
                 "|U-1|",@sprintf("%.2E", norm(U[1] * adjoint(U[1]) - Array{ComplexF64}(I, Nc, Nc), 2 )) ,"\t",
@@ -923,7 +942,13 @@ function HMC(NEW::Int, Nc::Int, gamma::Float64, q::Float64, niter::Int, step_siz
 
     #################################################
     # 最終的なconfigurationをファイルに書き出し
-    write_config(configfile, iter_init, niter, U, Nc)
+    #write_config(configfile, iter_init, niter, U, Nc)
+    jldopen(configfile, "w"; compress = true) do f 
+      f["Uconf"] = U
+      f["iter"] = iter_init+niter-1
+      #f["large_array"] = zeros(10000)
+      #save("$(config_file).jld", "Uconf", Uconf)
+    end
 
     #return naccept/niter, phases, S
     return naccept/niter, Uconf

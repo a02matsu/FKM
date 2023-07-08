@@ -156,10 +156,10 @@ function start_simulation(Nc, gamma, q, niter=200000, step_size=0.10)
       end
       return 
     else 
-      # 熱化(改めてcold start)
+      # 熱化
       niter0 = 40000
       #acc, phases, A = HMC(1,Nc,gamma,q,niter0,step_size,Ntau,filebody)
-      HMC(0,Nc,gamma,q,niter0,step_size,Ntau,filebody)
+      HMC(1,Nc,gamma,q,niter0,step_size,Ntau,filebody)
     end
   end
   if Ntau > MaxNtau
@@ -171,13 +171,13 @@ function start_simulation(Nc, gamma, q, niter=200000, step_size=0.10)
     # 本番前のNtau調整
     if Trig == 1 
       acc = 0.0
-      while acc < MinAcc
-        niter0 = 1000
-        acc, Uconf = HMC(1,Nc,gamma,q,niter0,step_size,Ntau,filebody)
-        if acc < MinAcc
-          Ntau += 1
-        end
-      end
+      #while acc < MinAcc
+      #  niter0 = 1000
+      #  acc, Uconf = HMC(1,Nc,gamma,q,niter0,step_size,Ntau,filebody)
+      #  if acc < MinAcc
+      #    Ntau += 1
+      #  end
+      #end
       open(Ntaufile, "w") do f
         write(f, string(Ntau))
       end
