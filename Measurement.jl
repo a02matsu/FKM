@@ -280,10 +280,13 @@ function plot_N(phys, Nc)
   # 臨界帯
   #plot!(x -> 0.0, 0.0, 1.0, fillrange=x -> 10.0, linealpha=0,
       #fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)")
-  # タイトルを設定
+  # タイトルを設定 
   xlabel!("\$s\$")
   ylabel!("$(phys)")
   title!("$(NAME), $(phys), \$ N_c = $(Nc) \$")
+  if phys == "specificheat" 
+    hline!(plt, range(0, 6, length=13), linestyle=:dash, linecolor=:black, label="")
+  end
   #if phys == "specificheat"
     #ylims!(0,2.2)
   #end
