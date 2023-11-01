@@ -11,7 +11,7 @@ using Printf
 using LsqFit
 using Statistics
 using DelimitedFiles
-include("Graph.jl")
+include("../Graph_K4.jl")
 using .Graph
 
 export calc_obs, findPT, plot_gamma, plot_N, analysePT, plot_gamma_small_q, sof, qof, plot_gamma_large_q, plot_ST, plot_completed_energy
