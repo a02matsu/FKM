@@ -1,0 +1,30 @@
+
+
+*******************************************************************************
+Thu Jun  1 17:11:24 2023
+
+
+FIT:    data read from "./dC_N8g12800q54566u00_S10Ntau1.txt"
+        format = z
+        #datapoints = 20000
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x) = a
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   a            
+   0 3.0576401377e+04   0.00e+00  1.00e+00    1.000000e+00
+   2 1.0667171790e+04  -4.67e-04  1.00e-02    2.271841e-03
+
+After 2 iterations the fit converged.
+final sum of squares of residuals : 10667.2
+rel. change during last iteration : -4.66554e-09
+
+degrees of freedom    (FIT_NDF)                        : 19999
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 0.730332
+variance of residuals (reduced chisquare) = WSSR/ndf   : 0.533385
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+a               = 0.00227184       +/- 0.005164     (227.3%)
