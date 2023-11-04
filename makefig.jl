@@ -5,6 +5,7 @@
 using CSV
 using DataFrames
 using Plots
+using Plots.PlotMeasures
 using Glob
 include("Graph.jl")
 using .Graph
@@ -15,9 +16,9 @@ ColorList = [:blue, :red, :green, :cyan, :purple, :yellow]
 Nc = 16
 phys = "specificheat"
 
-plt = plot()
+plt = plot(xlabelfontsize = 14, ylabelfontsize = 14, size=(1000,700), margin=20px)
 
-for gamma_int in [400,800,1600,12800,102400]
+for gamma_int in [800,1600,12800,102400,409600,1638400]
 
 # CSVファイルの読み込み
 file = "./FKM_$(NAME)/$(phys)_N$(Nc)g$(gamma_int)u00.csv"
@@ -42,7 +43,8 @@ end
       fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)")
 
     # 軸ラベルを設定
-    ylims!(0,6.0) 
+    xlims!(-5.5,6.5) 
+    ylims!(0,4.0) 
     xlabel!("\$s\$")
     ylabel!("$(phys)")
     plot!(plt, legend=:topright)
