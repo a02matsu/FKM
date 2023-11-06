@@ -14,11 +14,12 @@ using .Graph
 ColorList = [:blue, :red, :green, :cyan, :purple, :yellow]
 
 Nc = 16
-phys = "specificheat"
+phys = "energy"
 
 plt = plot(xlabelfontsize = 14, ylabelfontsize = 14, size=(1000,700), margin=20px)
 
-for gamma_int in [800,1600,12800,102400,409600,1638400]
+#for gamma_int in [800,1600,12800,102400,409600,1638400]
+for gamma_int in [102400,409600,1638400]
 
 # CSVファイルの読み込み
 file = "./FKM_$(NAME)/$(phys)_N$(Nc)g$(gamma_int)u00.csv"
@@ -38,20 +39,37 @@ scatter!(plt, x, y, yerror=err, label="\$\\gamma\$ = $(g)", markershape=:circle,
 
 end
 
-  # 臨界帯
-  plot!(x -> 0.0, 0.0, 1.0, fillrange=x -> 10.0, linealpha=0,
-      fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)")
+# 臨界帯
+plot!(x -> 0.0, 0.0, 1.0, fillrange=x -> 10.0, linealpha=0,
+  fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)")
 
-    # 軸ラベルを設定
-    xlims!(-5.5,6.5) 
-    ylims!(0,4.0) 
-    xlabel!("\$s\$")
-    ylabel!("$(phys)")
-    plot!(plt, legend=:topright)
+# 軸ラベルを設定
+xlims!(3.0, 6.5)
+ylims!(-15, 1)
+xlabel!("\$s\$")
+ylabel!("$(phys)")
+plot!(plt, legend=:bottomright)
 
 # 理論値
-g = 1024
+zeta(q) = 1/((1 - q)*(1 - 2q)*(1 - q^2)^2*(1 + q + 2q^2)^3)
 
+g = 1024
+E0(s) = -g^2*log(zeta(2^(-2*s)))
+E1(s) = -g*log(zeta(2^(-s))) + 3/2 + 0.75
+plot!(E0, label="E0(g=1024)")
+plot!(E1, label="E1(g=1024)")
+
+g = 4096
+E0(s) = -g^2*log(zeta(2^(-2*s)))
+E1(s) = -g*log(zeta(2^(-s))) + 3/2 + 0.63
+plot!(E0, label="E0(g=4096)")
+plot!(E1, label="E1(g=4096)")
+
+g = 16384
+E0(s) = -g^2*log(zeta(2^(-2*s)))
+E1(s) = -g*log(zeta(2^(-s))) + 3/2 + 0.6
+plot!(E0, label="E0(g=16384)")
+plot!(E1, label="E1(g=16384)")
 
 # プロットを表示
 display(plt)
