@@ -55,21 +55,27 @@ zeta(q) = 1/((1 - q)*(1 - 2q)*(1 - q^2)^2*(1 + q + 2q^2)^3)
 
 g = 1024
 E0(s) = -g^2*log(zeta(2^(-2*s)))
-E1(s) = -g*log(zeta(2^(-s))) + 3/2 + 0.75
-plot!(E0, label="E0(g=1024)")
-plot!(E1, label="E1(g=1024)")
+E1(s) = -g*log(zeta(2^(-s))) + 3/2
+E3(s) = (E0(s)+E1(s))/2
+plot!(3.0:0.01:6.5, E0, label="E0(g=1024)")
+plot!(3.0:0.01:6.5, E1, label="E1(g=1024)")
+plot!(3.0:0.01:6.5, E3, label="(E0+E1)/2 (g=1024)")
 
 g = 4096
 E0(s) = -g^2*log(zeta(2^(-2*s)))
-E1(s) = -g*log(zeta(2^(-s))) + 3/2 + 0.63
-plot!(E0, label="E0(g=4096)")
-plot!(E1, label="E1(g=4096)")
+E1(s) = -g*log(zeta(2^(-s))) + 3/2
+E3(s) = (E0(s)+E1(s))/2
+plot!(3.0:0.01:6.5, E0, label="E0(g=4096)")
+plot!(3.0:0.01:6.5, E1, label="E1(g=4096)")
+plot!(3.0:0.01:6.5, E3, label="(E0+E1)/2 (g=1024)")
 
 g = 16384
 E0(s) = -g^2*log(zeta(2^(-2*s)))
-E1(s) = -g*log(zeta(2^(-s))) + 3/2 + 0.6
-plot!(E0, label="E0(g=16384)")
-plot!(E1, label="E1(g=16384)")
+E1(s) = -g*log(zeta(2^(-s))) + 3/2
+E3(s) = (E0(s)+E1(s))/2
+plot!(3.0:0.01:6.5, E0, label="E0(g=16384)")
+plot!(3.0:0.01:6.5, E1, label="E1(g=16384)")
+plot!(3.0:0.01:6.5, E3, label="(E0+E1)/2 (g=1024)")
 
 # プロットを表示
 display(plt)
