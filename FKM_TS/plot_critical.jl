@@ -28,7 +28,7 @@ df = DataFrame(CSV.File(file))
 x = df.q
 y = df.mean_val .* g0
 eerr = df.stderr_val .* g0
-scatter!(plt, x, y, yerror=eerr, label="energy", xlims=(0.05,0.1),ylims=(-10.5,5))
+scatter!(plt, x, y, yerror=eerr, label="energy", xlims=(0.05,0.1),ylims=(-4,1.5))
 
 x = range(0.0,0.6,1000)
 plot!(plt, x, E0.(g0,x), label="\$E_0\$")
