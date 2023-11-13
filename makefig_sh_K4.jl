@@ -40,10 +40,10 @@ for gamma_int in [102400,409600,1638400]
   scatter!(plt, x, y, yerror=err, label="\$\\gamma\$ = $(g)", markershape=:circle, markersize=3)
 
   C0(s) = g^2 * log(zeta(2^(-2 * s)))
-  C0n(s) = 2*g^2 * log(zeta(2^(-2*s)))
+  C0n(s) = 8*(g*2^(-3*s))^2+28*(g*2^(-3*s))^4
   C1(s) = 3 / 2
   plot!(1.0:0.05:9.0, C0, label="C0(\$\\gamma\$=$(g))")
-  plot!(1.0:0.05:9.0, C0n, label="(4/3)*C0(\$\\gamma\$=$(g))")
+  plot!(1.0:0.05:9.0, C0n, label="Matsuura prediction(\$\\gamma\$=$(g))")
   plot!(1.0:0.05:9.0, C1, label="C1(\$ \\gamma\$=$(g))")
 
 end
@@ -62,4 +62,4 @@ plot!(plt, legend=:topright)
 # プロットを表示
 display(plt)
 # プロットをファイルに保存
-savefig(plt, "$(NAME)_$(phys).pdf")
+savefig(plt, "$(NAME)_$(phys).png")
