@@ -15,7 +15,7 @@ for NN in [16]
   end
 @everywhere begin
   # aの範囲を設定
-  A = range(0.4,0.7,36)
+  A = range(0.1,0.4,36)
 end
 ## QをNPROCS個ずつのブロックに分割
 blocks = chunk(A, NPROCS) 

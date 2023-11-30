@@ -38,12 +38,12 @@ function calc_obs(phys,Nc::Int)
 end
 
 for phys in ["energy", "specificheat", "dC"]
-  for Nc in [8]#,8,16]
+  for Nc in [16]#,8,16]
     calc_obs(phys,Nc)
   end
 end
 
-file = "Obs/specificheat_GWWK4_N8.csv"
+file = "Obs/specificheat_GWWK4_N16.csv"
 df = DataFrame(CSV.File(file))
 x = df.a
 y = df.mean_val
