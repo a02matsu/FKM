@@ -1068,7 +1068,7 @@ end
 #function action(U, Nc::Int ,gamma::Float64, q::Float64, u::Float64)
 function action_GWWK4(U, Nc::Int, aa::Float64)
   A = U[1] * U[2] * U[3] + U[1] + U[2] + U[3]
-  return Nc * aa * 2.0 * real(tr(A))
+  return -Nc * aa * 2.0 * real(tr(A))
 end
 
 #################################################
@@ -1077,13 +1077,13 @@ function force_GWWK4(U, Nc::Int, aa::Float64)
   F = []
 
   tmp = U[1] + U[1]*U[2]*U[3]
-  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
+  push!(F, -(im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
 
   tmp = U[2] + U[2]*U[3]*U[1]
-  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
+  push!(F, -(im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
 
   tmp = U[3] + U[3]*U[1]*U[2]
-  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
+  push!(F, -(im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
 
   return F
 end

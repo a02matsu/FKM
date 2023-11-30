@@ -416,6 +416,7 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
   MinAcc = 0.75 # minimal acceptance ratio
   # シミュレーションのパラメータ
   SSint = Int(round(step_size*100)) 
+  atxt=@sprintf("%.4f",aa)
 
   if !isdir("Conf")
       mkdir("Conf")
@@ -425,7 +426,7 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
   if !isdir("Ntau")
       mkdir("Ntau")
   end
-  Ntaufile = "Ntau/Ntau_GWWK4_N$(Nc)a$(aa).txt"
+  Ntaufile = "Ntau/Ntau_GWWK4_N$(Nc)a$(atxt).txt"
   if isfile(Ntaufile) && filesize(Ntaufile) != 0
       open(Ntaufile, "r") do f
           Ntau = parse(Int, readline(f))
@@ -438,7 +439,7 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
       acc = 0.0
   end
   # configがない時は熱化処理（Ntauも再設定）
-  filebody = "Conf/config_GWWK4_N$(Nc)a$(aa)"
+  filebody = "Conf/config_GWWK4_N$(Nc)a$(atxt)"
   filename = "$(filebody).txt"
   if !isfile(filename) 
     # 最初にNtauを調整
@@ -462,7 +463,7 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
       end
     end
     if Ntau > MaxNtau
-      open("Ex_GWWK4_N$(Nc)a$(aa).txt", "w") do f
+      open("Ex_GWWK4_N$(Nc)a$(atxt).txt", "w") do f
         # Write any necessary content to the file here
       end
       return 
@@ -474,7 +475,7 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
     end
   end
   if Ntau > MaxNtau
-    open("Ex_GWWK4_N$(Nc)a$(aa).txt", "w") do f
+    open("Ex_GWWK4_N$(Nc)a$(atxt).txt", "w") do f
       ## Write any necessary content to the file here
     end
     return
@@ -510,8 +511,8 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
          histogram!(vcat(phases[a]...),xlim=(-3.1416,3.1416),bins=100,label="Cycle $(a)",alpha=0.5,normalize=true)
     end
     xlabel!("\$\\theta\$")
-    title!("$(NAME), \$N_c = $(Nc)\$, \$a = $(aa)\$")
-    figname = "phases_GWWK4_N$(Nc)a$(aa)"
+    title!("$(NAME), \$N_c = $(Nc)\$, \$a = $(atxt)\$")
+    figname = "phases_GWWK4_N$(Nc)a$(atxt)"
     backup_file(figname,"png")
     if !isdir("Phases")
         mkdir("Phases")
@@ -554,19 +555,19 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
         mkdir("Obs")
     end
     # energy
-    filename = "Obs/energy_GWWK4_N$(Nc)a$(aa)_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/energy_GWWK4_N$(Nc)a$(atxt)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
     write_realvalues("$(filename).txt", A ./ Nc^2)
     # 比熱
-    filename = "Obs/specificheat_GWWK4_N$(Nc)a$(aa)_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/specificheat_GWWK4_N$(Nc)a$(atxt)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
     write_realvalues("$(filename).txt", devS2 ./ (aa^2 * Nc^2) )
     # 比熱の温度微分
-    filename = "Obs/dC_GWWK4_N$(Nc)a$(aa)_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/dC_GWWK4_N$(Nc)a$(atxt)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
     write_realvalues("$(filename).txt", devS3 ./ (aa^3 * Nc^2 ) )
     # Wilson loop
-    filename = "Obs/Wilson_N$(Nc)a$(aa)_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/Wilson_N$(Nc)a$(atxt)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
     open("$(filename).txt", "w") do f
       for W in Wilson
@@ -599,7 +600,7 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
     if !isdir("Uconfig")
       mkdir("Uconfig")
     end
-    config_file = "Uconfig/Uconf_N$(Nc)a$(aa)"
+    config_file = "Uconfig/Uconf_N$(Nc)a$(atxt)"
     backup_file(config_file,"jld")
     jldopen("$(config_file).jld", "w"; compress = true) do f 
       f["Uconf"] = Uconf
