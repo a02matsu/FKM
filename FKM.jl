@@ -1065,38 +1065,23 @@ end
 #function action(U, Nc::Int ,gamma::Float64, q::Float64, u::Float64)
 function action_GWWK4(U, Nc::Int, aa::Float64)
   A = U[1] * U[2] * U[3] + U[1] + U[2] + U[3]
-  tmp = 0.0
-  for i=1:Nc
-    tmp += A[i,i]
-  end
-  return Nc * aa * 2.0 * real(tmp)
+  return Nc * aa * 2.0 * real(tr(A))
 end
 
 #################################################
 ## Force 
 function force_GWWK4(U, Nc::Int, aa::Float64)
   F = []
-  V = Vmat(q)
-  Minv = inv( ONE_minus_VUmat(U,Nc,q) )
 
-  for a in 1:3
-      Fa = zeros(Complex{Float64}, Nc, Nc)
-      tmp = zeros(Complex{Float64}, Nc ,Nc)
-      for B in 1:2*3
-          tmp += V[a,B] .* Minv[(B-1)*Nc+1:B*Nc,(a-1)*Nc+1:a*Nc]
-      end
-      Fa += U[a] * tmp
-      tmp = zeros(Complex{Float64}, Nc, Nc)
-      for B in 1:2*3
-          tmp += V[a+3,B] .* Minv[(B-1)*Nc+1:B*Nc,(a+3-1)*Nc+1:(a+3)*Nc]
-      end
-      Fa .+= -tmp * adjoint(U[a])
+  tmp = U[1] + U[1]*U[2]*U[3]
+  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) ))
 
-      Fa .*= im * gamma * Nc 
-      Fa = 0.5 .* ( copy(Fa) + adjoint(copy(Fa)) ) 
+  tmp = U[2] + U[2]*U[3]*U[1]
+  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) ))
 
-      push!( F, Fa )
-  end
+  tmp = U[3] + U[3]*U[1]*U[2]
+  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) ))
+
   return F
 end
 
@@ -1117,12 +1102,11 @@ function molecular_evolution_GWWK4(U,P,Nc::Int,aa::Float64,Ntau::Int,Dtau::Float
       end
   end
   # final step
-  F = force_GWWK4(U,Nc,gamma,aa)
+  F = force_GWWK4(U,Nc,aa)
   P += Dtau .* F
   for a in 1:3
       U[a] = exp( im * 0.5 * Dtau .* P[a] ) * copy(U[a])
   end
-
 
   for a in 1:3
       if( check_unitary(U[a],Nc) > 1e-13 )
