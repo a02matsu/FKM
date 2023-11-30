@@ -1044,6 +1044,112 @@ function check_force_balance(Nc::Int, gamma::Float64, q::Float64, tau::Float64, 
     ylabel!("\$\\Delta H\$")
 end
 
+######################################################
+## HMC でのK4でのGWWシミュレーション
+function HMC_GWW_K4(NEW::Int, Nc::Int, a::Float64, niter::Int, step_size::Float64, Ntau::Int,configbody="config_GWWK4")
+  naccept = 1 # 初期化
+  skip_step = 10 # このステップごとに測定値を格納する
+  print_step = 10000 # このステップごとに標準出力する
+  Dtau = step_size / Ntau
+  #phases = [[] for _ in 1:RANK] # Uの固有値のhistory
+  Uconf = [] # Uのhistory
+  #S = []
+  # Hot start
+  #U = [unitary(Nc, 2.0 .* (rand(Float64,Nc^2) .- 0.5) .* pi) for i in 1:RANK]
+  # Cold start
+  U = [Array{ComplexF64}(I, Nc, Nc) for _ in 1:3]
+
+  #################################################
+  ## ファイルの読み込み
+  ## 以前のconfigurationがあればそこから読み取る。
+  ## ただし、読み込んだ後はファイル名を変更してバックアップにする
+  #filename = "config.txt"
+  # ファイルが存在する場合
+  #configfile = "$(configbody).txt"
+  configfile = "$(configbody).jld"
+  if isfile(configfile) && NEW != 0
+      iter_init = load(configfile, "iter")
+      iter_init += 1
+      U = load(configfile, "Uconf")
+      backup_file(configbody,"jld")
+      #iter_init, U = read_config(Nc, configfile)
+      #backup_file(configbody,"txt")
+  # ファイルは存在するけどNEW==0の場合
+  elseif isfile(configfile) && NEW == 0
+      iter_init = 1
+      # 以前のファイルをバックアップ
+      backup_file(configbody,"jld")
+      #backup_file(configbody,"txt")
+  # ファイルが存在しない、または、NEW==0の場合
+  else
+      iter_init = 1
+  end
+  #################################################
+
+  #################################################
+  ## MCMC開始
+  U_backup = copy(U)
+  for iter = 1:niter 
+      # バックアップ
+      U_backup .= U
+      # momentumを乱数で指定
+      P = [hermitian( Nc, randn(Nc^2) ) for i in 1:3]
+      # 初期Hamiltonian
+      H_init = hamiltonian_GWWK4(U,P,Nc,a)
+      # UとPの更新
+      U, P = molecular_evolution_GWWK4(copy(U),copy(P),Nc::Int,a::Float64,Ntau,Dtau)
+      # 更新後のHamiltonian
+      H_fin = hamiltonian_GWWK4(U,P,Nc,a)
+      # メトロポリステスト
+      if exp( H_init - H_fin )  > rand()
+          naccept += 1
+      else
+          U .= U_backup
+      end
+
+      # 結果の書き出し
+      if iter % print_step == 0
+          println()
+          println(
+              "q:",@sprintf("%.3E",q),"\t",
+              "Ntau:",Ntau,"\t",
+              "iter:",iter_init+iter-1,"\t",
+              "|U-1|",@sprintf("%.2E", norm(U[1] * adjoint(U[1]) - Array{ComplexF64}(I, Nc, Nc), 2 )) ,"\t",
+              "dH:",@sprintf("%.2E",abs(H_fin - H_init)),"\t", 
+              "acc:",@sprintf("%.3f",naccept/iter))
+      end
+      # 物理量の書き出し
+      if iter % skip_step == 0
+          # 偏角を取得
+          # Uのhistoryを取得
+          #for a in 1:RANK
+              #push!(phases[a], map(angle,eigvals(U[a])))
+          #end
+          push!(Uconf, copy(U))
+          # action と　action^2 を取得
+          #push!(S, action(U,Nc,q))
+          # Uのconfigを保存
+          #push!(confU, copy(U)) 
+          # copyがないと、、confUにUの参照が複数回追加されているため、全ての要素が同じオブジェクトを参照する。
+          # つまり、Uが更新されるたびに、すべての要素が最新のUの状態を参照するようになる。
+          # そのため、confUにはUの最終的な状態しか含まれず、niter回の反復で同じ内容が続くことになる。
+      end
+  end
+
+  #################################################
+  # 最終的なconfigurationをファイルに書き出し
+  #write_config(configfile, iter_init, niter, U, Nc)
+  jldopen(configfile, "w"; compress = true) do f 
+    f["Uconf"] = U
+    f["iter"] = iter_init+niter-1
+    #f["large_array"] = zeros(10000)
+    #save("$(config_file).jld", "Uconf", Uconf)
+  end
+
+  #return naccept/niter, phases, S
+  return naccept/niter, Uconf
+end
+
 end
 
 
