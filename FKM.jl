@@ -1044,14 +1044,46 @@ function check_force_balance(Nc::Int, gamma::Float64, q::Float64, tau::Float64, 
     ylabel!("\$\\Delta H\$")
 end
 
+#################################################
+## molecular dynamics
+## u=0 限定、伊原ゼータ関数のpath表示利用
+function molecular_evolution_GWWK4(U,P,Nc::Int,aa::Float64,Ntau::Int,Dtau::Float64)
+  # first step
+  for a in 1:3
+      U[a] = exp( im * 0.5 * Dtau .* P[a] ) * copy(U[a])
+  end
+  # intermediate steps
+  for i in 1:Ntau-1
+      F = force_GWWK4(U,Nc,aa)
+      P += Dtau .* F
+      for a=1:3
+          U[a] = exp( im * Dtau .* P[a] ) * copy(U[a])
+      end
+  end
+  # final step
+  F = force_GWWK4(U,Nc,gamma,aa)
+  P += Dtau .* F
+  for a in 1:3
+      U[a] = exp( im * 0.5 * Dtau .* P[a] ) * copy(U[a])
+  end
+
+
+  for a in 1:3
+      if( check_unitary(U[a],Nc) > 1e-13 )
+          V = copy(U[a])
+          U[a] = closest_unitary_matrix(V)
+      end
+  end
+  return U,P
+end
+
 ######################################################
 ## HMC でのK4でのGWWシミュレーション
-function HMC_GWW_K4(NEW::Int, Nc::Int, a::Float64, niter::Int, step_size::Float64, Ntau::Int,configbody="config_GWWK4")
+function HMC_GWW_K4(NEW::Int, Nc::Int, aa::Float64, niter::Int, step_size::Float64, Ntau::Int,configbody="config_GWWK4")
   naccept = 1 # 初期化
   skip_step = 10 # このステップごとに測定値を格納する
   print_step = 10000 # このステップごとに標準出力する
   Dtau = step_size / Ntau
-  #phases = [[] for _ in 1:RANK] # Uの固有値のhistory
   Uconf = [] # Uのhistory
   # Cold start
   U = [Array{ComplexF64}(I, Nc, Nc) for _ in 1:3]
@@ -1090,11 +1122,11 @@ function HMC_GWW_K4(NEW::Int, Nc::Int, a::Float64, niter::Int, step_size::Float6
       # momentumを乱数で指定
       P = [hermitian( Nc, randn(Nc^2) ) for i in 1:3]
       # 初期Hamiltonian
-      H_init = hamiltonian_GWWK4(U,P,Nc,a)
+      H_init = hamiltonian_GWWK4(U,P,Nc,aa)
       # UとPの更新
-      U, P = molecular_evolution_GWWK4(copy(U),copy(P),Nc::Int,a::Float64,Ntau,Dtau)
+      U, P = molecular_evolution_GWWK4(copy(U),copy(P),Nc::Int,aa::Float64,Ntau,Dtau)
       # 更新後のHamiltonian
-      H_fin = hamiltonian_GWWK4(U,P,Nc,a)
+      H_fin = hamiltonian_GWWK4(U,P,Nc,aa)
       # メトロポリステスト
       if exp( H_init - H_fin )  > rand()
           naccept += 1
