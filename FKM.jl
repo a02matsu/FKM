@@ -1063,7 +1063,7 @@ function hamiltonian_GWWK4(U,P,Nc::Int,aa::Float64)
   return H
 end
 ############################################################################
-# function that returns  Nc * Tr( log(1-q(W+uJ)) ) 
+# function that returns  Nc * Tr( U1 + U2 + U3 + U1U2U3 + h.c. )
 # U : サイズNcのunitary matrixを RANK 個持つ配列
 #function action(U, Nc::Int ,gamma::Float64, q::Float64, u::Float64)
 function action_GWWK4(U, Nc::Int, aa::Float64)
@@ -1077,13 +1077,13 @@ function force_GWWK4(U, Nc::Int, aa::Float64)
   F = []
 
   tmp = U[1] + U[1]*U[2]*U[3]
-  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) ))
+  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
 
   tmp = U[2] + U[2]*U[3]*U[1]
-  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) ))
+  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
 
   tmp = U[3] + U[3]*U[1]*U[2]
-  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) ))
+  push!(F, (im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
 
   return F
 end
@@ -1181,7 +1181,7 @@ function HMC_GWWK4(NEW::Int, Nc::Int, aa::Float64, niter::Int, step_size::Float6
       if iter % print_step == 0
           println()
           println(
-              "q:",@sprintf("%.3E",q),"\t",
+              "a:",@sprintf("%.3E",aa),"\t",
               "Ntau:",Ntau,"\t",
               "iter:",iter_init+iter-1,"\t",
               "|U-1|",@sprintf("%.2E", norm(U[1] * adjoint(U[1]) - Array{ComplexF64}(I, Nc, Nc), 2 )) ,"\t",

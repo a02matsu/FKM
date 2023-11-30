@@ -506,7 +506,7 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
     #########################
     # phaseのヒストグラムを保存
     plt=histogram(vcat(phases[1]...),xlim=(-3.1416,3.1416),bins=100,label="Cycle 1",alpha=0.5,normalize=true)
-    for a in 2:RANK
+    for a in 2:3
          histogram!(vcat(phases[a]...),xlim=(-3.1416,3.1416),bins=100,label="Cycle $(a)",alpha=0.5,normalize=true)
     end
     xlabel!("\$\\theta\$")
@@ -540,7 +540,7 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
     # actionを計算
     A = Float64[]
     for U in Uconf
-      push!(A, action(U, Nc, q))
+      push!(A, action_GWWK4(U, Nc, aa))
     end
     ## averages
     aveS = mean(A)
@@ -554,23 +554,23 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
         mkdir("Obs")
     end
     # energy
-    filename = "Obs/energy_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/energy_GWWK4_N$(Nc)a$(aa)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
     write_realvalues("$(filename).txt", A ./ Nc^2)
     # 比熱
-    filename = "Obs/specificheat_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/specificheat_GWWK4_N$(Nc)a$(aa)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
-    write_realvalues("$(filename).txt", devS2 .* (gamma^2 / Nc^2) )
+    write_realvalues("$(filename).txt", devS2 ./ (aa^2 * Nc^2) )
     # 比熱の温度微分
-    filename = "Obs/dC_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/dC_GWWK4_N$(Nc)a$(aa)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
-    write_realvalues("$(filename).txt", devS3 .* (gamma^3 / Nc^2 ) )
+    write_realvalues("$(filename).txt", devS3 ./ (aa^3 * Nc^2 ) )
     # Wilson loop
-    filename = "Obs/Wilson_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/Wilson_N$(Nc)a$(aa)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
     open("$(filename).txt", "w") do f
       for W in Wilson
-        components = [ "$(real(W[a])), $(imag(W[a]))" for a in 1:RANK ] # list comprehension to create a string for each complex number
+        components = [ "$(real(W[a])), $(imag(W[a]))" for a in 1:3 ] # list comprehension to create a string for each complex number
         line = join(components, ", ")  # join all components with a comma
         write(f, line, "\n") # write the line to the file
         #for a in 1:RANK
@@ -582,16 +582,16 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
 
     #########################
     # dCのhistoryを書き出し
-    X = [1:length(devS3)]
-    Ph = devS3 .* (gamma^3 / Nc^2 )
-    plt2 = scatter(X,Ph)
-    title!("$(NAME), dC, \$\\gamma = $(gamma), q=$(q)\$, \$u=0.0\$")
-    figname = "dC_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00"
-    backup_file(figname,"png")
-    if !isdir("Obs")
-        mkdir("Obs")
-    end
-    savefig(plt2, "Obs/$(figname).png")
+    #X = [1:length(devS3)]
+    #Ph = devS3 .* (gamma^3 / Nc^2 )
+    #plt2 = scatter(X,Ph)
+    #title!("$(NAME), dC, \$\\gamma = $(gamma), q=$(q)\$, \$u=0.0\$")
+    #figname = "dC_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00"
+    #backup_file(figname,"png")
+    #if !isdir("Obs")
+        #mkdir("Obs")
+    #end
+    #savefig(plt2, "Obs/$(figname).png")
 
 
     #########################
@@ -599,12 +599,10 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
     if !isdir("Uconfig")
       mkdir("Uconfig")
     end
-    config_file = "Uconfig/Uconf_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00"
+    config_file = "Uconfig/Uconf_N$(Nc)a$(aa)"
     backup_file(config_file,"jld")
     jldopen("$(config_file).jld", "w"; compress = true) do f 
       f["Uconf"] = Uconf
-      #f["large_array"] = zeros(10000)
-      #save("$(config_file).jld", "Uconf", Uconf)
     end
   end
 end

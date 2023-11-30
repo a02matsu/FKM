@@ -1,5 +1,5 @@
 using Distributed
-NPROCS = 4  
+NPROCS = 12  
 addprocs(NPROCS)
 nworkers()
 @everywhere include("Simulation.jl")
@@ -15,7 +15,7 @@ for NN in [4]
   end
 @everywhere begin
   # aの範囲を設定
-  A = range(0.35,0.45,4)
+  A = range(0.35,0.45,12)
 end
 ## QをNPROCS個ずつのブロックに分割
 blocks = chunk(A, NPROCS) 
