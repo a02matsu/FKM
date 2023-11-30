@@ -1119,7 +1119,7 @@ end
 
 ######################################################
 ## HMC でのK4でのGWWシミュレーション
-function HMC_GWW_K4(NEW::Int, Nc::Int, aa::Float64, niter::Int, step_size::Float64, Ntau::Int,configbody="config_GWWK4")
+function HMC_GWWK4(NEW::Int, Nc::Int, aa::Float64, niter::Int, step_size::Float64, Ntau::Int,configbody="config_GWWK4")
   naccept = 1 # 初期化
   skip_step = 10 # このステップごとに測定値を格納する
   print_step = 10000 # このステップごとに標準出力する

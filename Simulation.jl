@@ -407,6 +407,207 @@ function chunk(arr, n)
   [arr[(i-1)*n+1:i*n] for i=1:k]..., arr[k*n+1:end]
 end
 
+#########################################
+## HMCでのシミュレーションを実行
+function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
+  ## Control Simulation
+  MaxNtau = 30 # limit of Ntau
+  MinAcc = 0.75 # minimal acceptance ratio
+  # シミュレーションのパラメータ
+  SSint = Int(round(step_size*100)) 
+
+  if !isdir("Conf")
+      mkdir("Conf")
+  end
+  # ほどよいacceptanceがわかっていたらNtauファイルから読み込み、
+  # さもなければ、初期のNtauは1に指定。acceptanceを見ながら調整する
+  if !isdir("Ntau")
+      mkdir("Ntau")
+  end
+  Ntaufile = "Ntau/Ntau_GWWK4_N$(Nc)a$(aa).txt"
+  if isfile(Ntaufile) && filesize(Ntaufile) != 0
+      open(Ntaufile, "r") do f
+          Ntau = parse(Int, readline(f))
+      end
+      Trig = 0
+  # Ntauファイルが存在しない場合、Ntauを調整するので初期設定
+  else
+      Ntau = 1
+      Trig = 1
+      acc = 0.0
+  end
+  # configがない時は熱化処理（Ntauも再設定）
+  filebody = "Conf/config_GWWK4_N$(Nc)a$(aa)"
+  filename = "$(filebody).txt"
+  if !isfile(filename) 
+    # 最初にNtauを調整
+    acc = 0.0
+    Ntau = 1
+    Trig = 1
+    # 小さいstep_sizeで初期配位を作成
+    HMC_GWWK4(0,Nc,aa,1000,0.0001,Ntau,filebody)
+    HMC_GWWK4(1,Nc,aa,1000,0.001,Ntau,filebody)
+    HMC_GWWK4(1,Nc,aa,1000,0.01,Ntau,filebody)
+    while acc < MinAcc && Ntau <= MaxNtau
+      niter0 = 1000
+      ## path表示を利用(uを指定しないとpath表示を利用する仕様)
+      acc, Uconf = HMC_GWWK4(1,Nc,aa,niter0,step_size,Ntau,filebody)
+      if acc < 0.10
+        Ntau += 3
+        println("try again: Ntau:",Ntau," q:",@sprintf("%.4f",q), " acc was ", @sprintf("%4f",acc))
+      elseif acc < MinAcc 
+        Ntau += 1
+        println("try again: Ntau:",Ntau," q:",@sprintf("%.4f",q), " acc was ", @sprintf("%4f",acc))
+      end
+    end
+    if Ntau > MaxNtau
+      open("Ex_GWWK4_N$(Nc)a$(aa).txt", "w") do f
+        # Write any necessary content to the file here
+      end
+      return 
+    else 
+      # 熱化
+      niter0 = 40000
+      #acc, phases, A = HMC(1,Nc,gamma,q,niter0,step_size,Ntau,filebody)
+      HMC_GWWK4(1,Nc,aa,niter0,step_size,Ntau,filebody)
+    end
+  end
+  if Ntau > MaxNtau
+    open("Ex_GWWK4_N$(Nc)a$(aa).txt", "w") do f
+      ## Write any necessary content to the file here
+    end
+    return
+  else
+    # 本番前のNtau調整
+    if Trig == 1 
+      acc = 0.0
+      open(Ntaufile, "w") do f
+        write(f, string(Ntau))
+      end
+    end
+    # 本番
+    acc, Uconf = HMC_GWWK4(1,Nc,aa,niter+10000,step_size,Ntau,filebody)
+
+    Uconf = Uconf[1001:end]
+    #phases = phases[1001:end]
+    phases = [[] for _ in 1:RANK] # Uの固有値の偏角
+    Wilson = [] # Wilson loop
+    for U in Uconf
+      tmp = []
+      for a in 1:RANK
+        eigs = eigvals(U[a])
+        push!(tmp, sum(eigs)/Nc)
+        push!(phases[a], map(angle,eigs))
+      end
+      push!(Wilson,tmp)
+    end
+
+    #########################
+    # phaseのヒストグラムを保存
+    plt=histogram(vcat(phases[1]...),xlim=(-3.1416,3.1416),bins=100,label="Cycle 1",alpha=0.5,normalize=true)
+    for a in 2:RANK
+         histogram!(vcat(phases[a]...),xlim=(-3.1416,3.1416),bins=100,label="Cycle $(a)",alpha=0.5,normalize=true)
+    end
+    xlabel!("\$\\theta\$")
+    title!("$(NAME), \$N_c = $(Nc)\$, \$a = $(aa)\$")
+    figname = "phases_GWWK4_N$(Nc)a$(aa)"
+    backup_file(figname,"png")
+    if !isdir("Phases")
+        mkdir("Phases")
+    end
+    savefig(plt, "Phases/$(figname).png")
+
+
+    ####################################
+    # phaseのヒストグラムデータを書き出す
+    hist = []
+    # ビンのエッジを定義
+    bin_edges = range(-3.1416, stop=3.1416, length=101) # length=101 to create 100 bins
+    for a in 1:RANK
+        phase = reduce(vcat,phases[a])
+        h = fit(Histogram, phase, bin_edges)
+        push!(hist, h.weights ./ length(phase) )
+    end
+    # データフレームの作成
+    colnames = ["Cycle " * string(a) for a in 1:RANK]
+    df = DataFrame(Dict(colnames[a] => hist[a] for a in 1:RANK))
+    # CSVファイルへの書き出し
+    CSV.write("Phases/$(figname).csv", df)
+
+    ####################################
+    # 物理量
+    # actionを計算
+    A = Float64[]
+    for U in Uconf
+      push!(A, action(U, Nc, q))
+    end
+    ## averages
+    aveS = mean(A)
+    ## moment
+    devS = A .- aveS
+    devS2 = devS.^2 
+    devS3 = devS.^3
+
+    ## 測定量の書き出し
+    if !isdir("Obs")
+        mkdir("Obs")
+    end
+    # energy
+    filename = "Obs/energy_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00_S$(SSint)Ntau$(Ntau)"
+    backup_file(filename,"txt")
+    write_realvalues("$(filename).txt", A ./ Nc^2)
+    # 比熱
+    filename = "Obs/specificheat_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00_S$(SSint)Ntau$(Ntau)"
+    backup_file(filename,"txt")
+    write_realvalues("$(filename).txt", devS2 .* (gamma^2 / Nc^2) )
+    # 比熱の温度微分
+    filename = "Obs/dC_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00_S$(SSint)Ntau$(Ntau)"
+    backup_file(filename,"txt")
+    write_realvalues("$(filename).txt", devS3 .* (gamma^3 / Nc^2 ) )
+    # Wilson loop
+    filename = "Obs/Wilson_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00_S$(SSint)Ntau$(Ntau)"
+    backup_file(filename,"txt")
+    open("$(filename).txt", "w") do f
+      for W in Wilson
+        components = [ "$(real(W[a])), $(imag(W[a]))" for a in 1:RANK ] # list comprehension to create a string for each complex number
+        line = join(components, ", ")  # join all components with a comma
+        write(f, line, "\n") # write the line to the file
+        #for a in 1:RANK
+          #write(f, real(W[a]), ", ", imag(W[a]), ", ")
+        #end
+        #write(f,"\n")
+      end
+    end
+
+    #########################
+    # dCのhistoryを書き出し
+    X = [1:length(devS3)]
+    Ph = devS3 .* (gamma^3 / Nc^2 )
+    plt2 = scatter(X,Ph)
+    title!("$(NAME), dC, \$\\gamma = $(gamma), q=$(q)\$, \$u=0.0\$")
+    figname = "dC_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00"
+    backup_file(figname,"png")
+    if !isdir("Obs")
+        mkdir("Obs")
+    end
+    savefig(plt2, "Obs/$(figname).png")
+
+
+    #########################
+    # configurationを書き出す(JLDを利用。Juliaのみ対応なので注意を)
+    if !isdir("Uconfig")
+      mkdir("Uconfig")
+    end
+    config_file = "Uconfig/Uconf_N$(Nc)g$(gamma_int)q$(qval)E$(qexpo)u00"
+    backup_file(config_file,"jld")
+    jldopen("$(config_file).jld", "w"; compress = true) do f 
+      f["Uconf"] = Uconf
+      #f["large_array"] = zeros(10000)
+      #save("$(config_file).jld", "Uconf", Uconf)
+    end
+  end
+end
+
 end
 
 
