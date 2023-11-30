@@ -32,7 +32,10 @@ LFreverse,
 action, 
 unitary,
 sof,
-qof
+qof,
+HMC_GWWK4,
+force_GWWK4,
+action_GWWK4
 
 ############################################################################
 ## 用いるグラフに合わせて Graph.jlを編集すること

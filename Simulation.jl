@@ -51,7 +51,8 @@ init_rng,
 Q_regular,
 Q_fine,
 start_simulation,
-chunk
+chunk,
+start_simulation_GWWK4
 
 #########################################
 # 乱数を初期化する関数。毎回違うseedを使うためにtime()を使う。
@@ -454,10 +455,10 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
       acc, Uconf = HMC_GWWK4(1,Nc,aa,niter0,step_size,Ntau,filebody)
       if acc < 0.10
         Ntau += 3
-        println("try again: Ntau:",Ntau," q:",@sprintf("%.4f",q), " acc was ", @sprintf("%4f",acc))
+        println("try again: Ntau:",Ntau," q:",@sprintf("%.4f",aa), " acc was ", @sprintf("%4f",acc))
       elseif acc < MinAcc 
         Ntau += 1
-        println("try again: Ntau:",Ntau," q:",@sprintf("%.4f",q), " acc was ", @sprintf("%4f",acc))
+        println("try again: Ntau:",Ntau," q:",@sprintf("%.4f",aa), " acc was ", @sprintf("%4f",acc))
       end
     end
     if Ntau > MaxNtau
