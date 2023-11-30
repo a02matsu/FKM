@@ -1045,6 +1045,62 @@ function check_force_balance(Nc::Int, gamma::Float64, q::Float64, tau::Float64, 
 end
 
 #################################################
+#################################################
+## 以下、K4 FKM模型のGWW limit 
+#################################################
+#################################################
+## Hamiltonian 
+## u=0限定、path表示
+function hamiltonian_GWWK4(U,P,Nc::Int,aa::Float64)
+  H = 0.0
+  for a=1:3
+      H += 0.5 .* real(tr(P[a] * P[a]))
+  end
+  H += action_GWWK4(U,Nc,aa)
+  return H
+end
+############################################################################
+# function that returns  Nc * Tr( log(1-q(W+uJ)) ) 
+# U : サイズNcのunitary matrixを RANK 個持つ配列
+#function action(U, Nc::Int ,gamma::Float64, q::Float64, u::Float64)
+function action_GWWK4(U, Nc::Int, aa::Float64)
+  A = U[1] * U[2] * U[3] + U[1] + U[2] + U[3]
+  tmp = 0.0
+  for i=1:Nc
+    tmp += A[i,i]
+  end
+  return Nc * aa * 2.0 * real(tmp)
+end
+
+#################################################
+## Force 
+function force_GWWK4(U, Nc::Int, aa::Float64)
+  F = []
+  V = Vmat(q)
+  Minv = inv( ONE_minus_VUmat(U,Nc,q) )
+
+  for a in 1:3
+      Fa = zeros(Complex{Float64}, Nc, Nc)
+      tmp = zeros(Complex{Float64}, Nc ,Nc)
+      for B in 1:2*3
+          tmp += V[a,B] .* Minv[(B-1)*Nc+1:B*Nc,(a-1)*Nc+1:a*Nc]
+      end
+      Fa += U[a] * tmp
+      tmp = zeros(Complex{Float64}, Nc, Nc)
+      for B in 1:2*3
+          tmp += V[a+3,B] .* Minv[(B-1)*Nc+1:B*Nc,(a+3-1)*Nc+1:(a+3)*Nc]
+      end
+      Fa .+= -tmp * adjoint(U[a])
+
+      Fa .*= im * gamma * Nc 
+      Fa = 0.5 .* ( copy(Fa) + adjoint(copy(Fa)) ) 
+
+      push!( F, Fa )
+  end
+  return F
+end
+
+#################################################
 ## molecular dynamics
 ## u=0 限定、伊原ゼータ関数のpath表示利用
 function molecular_evolution_GWWK4(U,P,Nc::Int,aa::Float64,Ntau::Int,Dtau::Float64)
