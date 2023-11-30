@@ -1053,9 +1053,6 @@ function HMC_GWW_K4(NEW::Int, Nc::Int, a::Float64, niter::Int, step_size::Float6
   Dtau = step_size / Ntau
   #phases = [[] for _ in 1:RANK] # Uの固有値のhistory
   Uconf = [] # Uのhistory
-  #S = []
-  # Hot start
-  #U = [unitary(Nc, 2.0 .* (rand(Float64,Nc^2) .- 0.5) .* pi) for i in 1:RANK]
   # Cold start
   U = [Array{ComplexF64}(I, Nc, Nc) for _ in 1:3]
 
@@ -1063,7 +1060,6 @@ function HMC_GWW_K4(NEW::Int, Nc::Int, a::Float64, niter::Int, step_size::Float6
   ## ファイルの読み込み
   ## 以前のconfigurationがあればそこから読み取る。
   ## ただし、読み込んだ後はファイル名を変更してバックアップにする
-  #filename = "config.txt"
   # ファイルが存在する場合
   #configfile = "$(configbody).txt"
   configfile = "$(configbody).jld"
@@ -1079,7 +1075,6 @@ function HMC_GWW_K4(NEW::Int, Nc::Int, a::Float64, niter::Int, step_size::Float6
       iter_init = 1
       # 以前のファイルをバックアップ
       backup_file(configbody,"jld")
-      #backup_file(configbody,"txt")
   # ファイルが存在しない、または、NEW==0の場合
   else
       iter_init = 1
@@ -1120,19 +1115,7 @@ function HMC_GWW_K4(NEW::Int, Nc::Int, a::Float64, niter::Int, step_size::Float6
       end
       # 物理量の書き出し
       if iter % skip_step == 0
-          # 偏角を取得
-          # Uのhistoryを取得
-          #for a in 1:RANK
-              #push!(phases[a], map(angle,eigvals(U[a])))
-          #end
           push!(Uconf, copy(U))
-          # action と　action^2 を取得
-          #push!(S, action(U,Nc,q))
-          # Uのconfigを保存
-          #push!(confU, copy(U)) 
-          # copyがないと、、confUにUの参照が複数回追加されているため、全ての要素が同じオブジェクトを参照する。
-          # つまり、Uが更新されるたびに、すべての要素が最新のUの状態を参照するようになる。
-          # そのため、confUにはUの最終的な状態しか含まれず、niter回の反復で同じ内容が続くことになる。
       end
   end
 
@@ -1142,11 +1125,7 @@ function HMC_GWW_K4(NEW::Int, Nc::Int, a::Float64, niter::Int, step_size::Float6
   jldopen(configfile, "w"; compress = true) do f 
     f["Uconf"] = U
     f["iter"] = iter_init+niter-1
-    #f["large_array"] = zeros(10000)
-    #save("$(config_file).jld", "Uconf", Uconf)
   end
-
-  #return naccept/niter, phases, S
   return naccept/niter, Uconf
 end
 
