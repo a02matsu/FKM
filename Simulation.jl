@@ -456,10 +456,10 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
       acc, Uconf = HMC_GWWK4(1,Nc,aa,niter0,step_size,Ntau,filebody)
       if acc < 0.10
         Ntau += 3
-        println("try again: Ntau:",Ntau," q:",@sprintf("%.4f",aa), " acc was ", @sprintf("%4f",acc))
+        println("try again: Ntau:",Ntau," a:",@sprintf("%.4f",aa), " acc was ", @sprintf("%4f",acc))
       elseif acc < MinAcc 
         Ntau += 1
-        println("try again: Ntau:",Ntau," q:",@sprintf("%.4f",aa), " acc was ", @sprintf("%4f",acc))
+        println("try again: Ntau:",Ntau," a:",@sprintf("%.4f",aa), " acc was ", @sprintf("%4f",acc))
       end
     end
     if Ntau > MaxNtau
@@ -561,13 +561,13 @@ function start_simulation_GWWK4(Nc, aa, niter=200000, step_size=0.10)
     # 比熱
     filename = "Obs/specificheat_GWWK4_N$(Nc)a$(atxt)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
-    write_realvalues("$(filename).txt", devS2 ./ (aa^2 * Nc^2) )
+    write_realvalues("$(filename).txt", devS2 ./ (Nc^2) )
     # 比熱の温度微分
     filename = "Obs/dC_GWWK4_N$(Nc)a$(atxt)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
-    write_realvalues("$(filename).txt", devS3 ./ (aa^3 * Nc^2 ) )
+    write_realvalues("$(filename).txt", devS3 ./ (Nc^2 ) )
     # Wilson loop
-    filename = "Obs/Wilson_N$(Nc)a$(atxt)_S$(SSint)Ntau$(Ntau)"
+    filename = "Obs/Wilson_GWWK4_N$(Nc)a$(atxt)_S$(SSint)Ntau$(Ntau)"
     backup_file(filename,"txt")
     open("$(filename).txt", "w") do f
       for W in Wilson

@@ -9,13 +9,13 @@ rngs = @sync @distributed (vcat) for id in workers()
     init_rng(id)
 end
 
-for NN in [8]
+for NN in [16]
   @everywhere begin
     global Nc = $NN 
   end
 @everywhere begin
   # aの範囲を設定
-  A = range(0.35,0.48,12)
+  A = range(0.4,0.7,36)
 end
 ## QをNPROCS個ずつのブロックに分割
 blocks = chunk(A, NPROCS) 
