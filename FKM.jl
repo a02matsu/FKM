@@ -32,7 +32,10 @@ LFreverse,
 action, 
 unitary,
 sof,
-qof
+qof,
+HMC_GWWK4,
+force_GWWK4,
+action_GWWK4
 
 ############################################################################
 ## 用いるグラフに合わせて Graph.jlを編集すること
@@ -1042,6 +1045,163 @@ function check_force_balance(Nc::Int, gamma::Float64, q::Float64, tau::Float64, 
     plot!(N, model(N,coef(fit)), label="fitting \$N^{-2}\$",markersize=10)
     xlabel!("Ntau")
     ylabel!("\$\\Delta H\$")
+end
+
+#################################################
+#################################################
+## 以下、K4 FKM模型のGWW limit 
+#################################################
+#################################################
+## Hamiltonian 
+## u=0限定、path表示
+function hamiltonian_GWWK4(U,P,Nc::Int,aa::Float64)
+  H = 0.0
+  for a=1:3
+      H += 0.5 .* real(tr(P[a] * P[a]))
+  end
+  H += action_GWWK4(U,Nc,aa)
+  return H
+end
+############################################################################
+# function that returns  Nc * Tr( U1 + U2 + U3 + U1U2U3 + h.c. )
+# U : サイズNcのunitary matrixを RANK 個持つ配列
+#function action(U, Nc::Int ,gamma::Float64, q::Float64, u::Float64)
+function action_GWWK4(U, Nc::Int, aa::Float64)
+  A = U[1] * U[2] * U[3] + U[1] + U[2] + U[3]
+  return -Nc * aa * 2.0 * real(tr(A))
+end
+
+#################################################
+## Force 
+function force_GWWK4(U, Nc::Int, aa::Float64)
+  F = []
+
+  tmp = U[1] + U[1]*U[2]*U[3]
+  push!(F, -(im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
+
+  tmp = U[2] + U[2]*U[3]*U[1]
+  push!(F, -(im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
+
+  tmp = U[3] + U[3]*U[1]*U[2]
+  push!(F, -(im * Nc * aa) .* ( tmp - adjoint(copy(tmp)) )' )
+
+  return F
+end
+
+#################################################
+## molecular dynamics
+## u=0 限定、伊原ゼータ関数のpath表示利用
+function molecular_evolution_GWWK4(U,P,Nc::Int,aa::Float64,Ntau::Int,Dtau::Float64)
+  # first step
+  for a in 1:3
+      U[a] = exp( im * 0.5 * Dtau .* P[a] ) * copy(U[a])
+  end
+  # intermediate steps
+  for i in 1:Ntau-1
+      F = force_GWWK4(U,Nc,aa)
+      P += Dtau .* F
+      for a=1:3
+          U[a] = exp( im * Dtau .* P[a] ) * copy(U[a])
+      end
+  end
+  # final step
+  F = force_GWWK4(U,Nc,aa)
+  P += Dtau .* F
+  for a in 1:3
+      U[a] = exp( im * 0.5 * Dtau .* P[a] ) * copy(U[a])
+  end
+
+  for a in 1:3
+      if( check_unitary(U[a],Nc) > 1e-13 )
+          V = copy(U[a])
+          U[a] = closest_unitary_matrix(V)
+      end
+  end
+  return U,P
+end
+
+######################################################
+## HMC でのK4でのGWWシミュレーション
+function HMC_GWWK4(NEW::Int, Nc::Int, aa::Float64, niter::Int, step_size::Float64, Ntau::Int,configbody="config_GWWK4")
+  naccept = 1 # 初期化
+  skip_step = 10 # このステップごとに測定値を格納する
+  print_step = 10000 # このステップごとに標準出力する
+  Dtau = step_size / Ntau
+  Uconf = [] # Uのhistory
+  # Cold start
+  U = [Array{ComplexF64}(I, Nc, Nc) for _ in 1:3]
+
+  #################################################
+  ## ファイルの読み込み
+  ## 以前のconfigurationがあればそこから読み取る。
+  ## ただし、読み込んだ後はファイル名を変更してバックアップにする
+  # ファイルが存在する場合
+  #configfile = "$(configbody).txt"
+  configfile = "$(configbody).jld"
+  if isfile(configfile) && NEW != 0
+      iter_init = load(configfile, "iter")
+      iter_init += 1
+      U = load(configfile, "Uconf")
+      backup_file(configbody,"jld")
+      #iter_init, U = read_config(Nc, configfile)
+      #backup_file(configbody,"txt")
+  # ファイルは存在するけどNEW==0の場合
+  elseif isfile(configfile) && NEW == 0
+      iter_init = 1
+      # 以前のファイルをバックアップ
+      backup_file(configbody,"jld")
+  # ファイルが存在しない、または、NEW==0の場合
+  else
+      iter_init = 1
+  end
+  #################################################
+
+  #################################################
+  ## MCMC開始
+  U_backup = copy(U)
+  for iter = 1:niter 
+      # バックアップ
+      U_backup .= U
+      # momentumを乱数で指定
+      P = [hermitian( Nc, randn(Nc^2) ) for i in 1:3]
+      # 初期Hamiltonian
+      H_init = hamiltonian_GWWK4(U,P,Nc,aa)
+      # UとPの更新
+      U, P = molecular_evolution_GWWK4(copy(U),copy(P),Nc::Int,aa::Float64,Ntau,Dtau)
+      # 更新後のHamiltonian
+      H_fin = hamiltonian_GWWK4(U,P,Nc,aa)
+      # メトロポリステスト
+      if exp( H_init - H_fin )  > rand()
+          naccept += 1
+      else
+          U .= U_backup
+      end
+
+      # 結果の書き出し
+      if iter % print_step == 0
+          println()
+          println(
+              "a:",@sprintf("%.3E",aa),"\t",
+              "Ntau:",Ntau,"\t",
+              "iter:",iter_init+iter-1,"\t",
+              "|U-1|",@sprintf("%.2E", norm(U[1] * adjoint(U[1]) - Array{ComplexF64}(I, Nc, Nc), 2 )) ,"\t",
+              "dH:",@sprintf("%.2E",abs(H_fin - H_init)),"\t", 
+              "acc:",@sprintf("%.3f",naccept/iter))
+      end
+      # 物理量の書き出し
+      if iter % skip_step == 0
+          push!(Uconf, copy(U))
+      end
+  end
+
+  #################################################
+  # 最終的なconfigurationをファイルに書き出し
+  #write_config(configfile, iter_init, niter, U, Nc)
+  jldopen(configfile, "w"; compress = true) do f 
+    f["Uconf"] = U
+    f["iter"] = iter_init+niter-1
+  end
+  return naccept/niter, Uconf
 end
 
 end
