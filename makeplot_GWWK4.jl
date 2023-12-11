@@ -43,11 +43,25 @@ for phys in ["energy", "specificheat", "dC"]
   end
 end
 
-file = "Obs/specificheat_GWWK4_N16.csv"
-df = DataFrame(CSV.File(file))
-x = df.a
-y = df.mean_val
-err = df.stderr_val
-plt = plot()
-xlabel!(plt,"\$x\$")
-scatter!(plt, x, y, yerror=err,label="C")
+C(a) = (6912*a^4 + 288*a^2 - 1)/(2*(48*a^2 - 1)^2)
+begin 
+  plt = plot()
+  z = range(0.35,0.7,1000)
+  plot!(plt, z, C.(z), label="theory")
+
+  file = "Obs/specificheat_GWWK4_N16.csv"
+  df = DataFrame(CSV.File(file))
+  x = df.a
+  y = df.mean_val
+  err = df.stderr_val
+  xlabel!(plt,"\$a\$")
+
+  scatter!(plt, x, y, yerror=err,label="C")
+
+  println(x)
+
+  display(plt)
+end
+savefig(plt,"specificheat_GWWK4_N16.png")
+map(s->parse(Float64, s), x)
+plot(x,C.(x))
