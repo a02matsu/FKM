@@ -6,7 +6,7 @@ export NAME, OMEGA, minl, NV, NE, RANK, e_free, S, T, poly
 # 外から見える関数
 export Vmat, sof, qof
 
-const NAME = "\$C_3\$"
+const NAME = "Cn"
 const OMEGA = 1
 const minl = 3
 const n = minl

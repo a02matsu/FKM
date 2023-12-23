@@ -10,7 +10,7 @@
 
 using Distributed
 # ローカルマシンのプロセスにワーカープロセスを追加する
-NPROCS = 18 
+NPROCS = 8
 addprocs(NPROCS)
 # リモートマシンにワーカーを追加
 #remote_username = "matsu"
