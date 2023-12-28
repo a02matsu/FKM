@@ -20,8 +20,7 @@ using .Graph
 # 外から見える変数
 export NAME, OMEGA, minl, NV, NE, RANK, e_free, S, T, poly, NL
 # 外から見える関数
-export calc_obs, calc_Wilson, Wilson_loops, findPT, plot_gamma, plot_N, analysePT, plot_gamma_small_q, sof, qof, plot_gamma_large_q, plot_completed_energy, read_q, findPT2, PhaseHist, hist_Wilson
-
+export calc_obs, calc_Wilson, Wilson_loops, findPT, plot_gamma, plot_N, analysePT, plot_gamma_small_q, sof, qof, plot_gamma_large_q, plot_completed_energy, read_q, findPT2, PhaseHist, hist_Wilson, jackknife, autocorrelation
 ################################
 # qとsの対応
 ################################
