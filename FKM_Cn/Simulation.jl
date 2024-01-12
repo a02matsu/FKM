@@ -64,9 +64,9 @@ end
     MaxNtau = 30 # limit of Ntau
     MinAcc = 0.75 # minimal acceptance ratio
     ## theory parameters
-    Nc = 16
+    Nc = 4
     u = 0e-1
-    gamma = 1024.0
+    gamma = 16.0
     # gammaを100倍して整数にし、ファイル名に利用
     gamma_int = Int(round(gamma*100))
     Nf = gamma * Nc 
