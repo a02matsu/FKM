@@ -20,8 +20,7 @@ using .Graph
 # 外から見える変数
 export NAME, OMEGA, minl, NV, NE, RANK, e_free, S, T, poly, NL
 # 外から見える関数
-export calc_obs, calc_Wilson, Wilson_loops, findPT, plot_gamma, plot_N, analysePT, plot_gamma_small_q, sof, qof, plot_gamma_large_q, plot_completed_energy, read_q, findPT2, PhaseHist, hist_Wilson
-
+export calc_obs, calc_Wilson, Wilson_loops, findPT, plot_gamma, plot_N, analysePT, plot_gamma_small_q, sof, qof, plot_gamma_large_q, plot_completed_energy, read_q, findPT2, PhaseHist, hist_Wilson, jackknife, autocorrelation
 ################################
 # qとsの対応
 ################################
@@ -285,7 +284,7 @@ function plot_N(phys, Nc)
   ylabel!("$(phys)")
   title!("$(NAME), $(phys), \$ N_c = $(Nc) \$")
   if phys == "specificheat" 
-    hline!(plt, range(0, 6, length=13), linestyle=:dash, linecolor=:black, label="")
+    hline!(plt, range(0, 2, step=0.2), linestyle=:dash, linecolor=:black, label="")
   end
   #if phys == "specificheat"
     #ylims!(0,2.2)
@@ -990,6 +989,30 @@ function findPT2(Nc::Int,gamma::Int,epsilon=10^-3,epsilon2=10^-4)
     push!(err2,abs((q2-q2b))/2)
   end
   return Qc1, err1, Qc2, err2, Q
+end
+
+#############################################
+## measure auto-correlation length
+function autocorrelation(data, k)
+  n = length(data)
+  mu = mean(data)
+  num = sum([(data[i] - mu) * (data[i + k] - mu) for i in 1:(n - k)])
+  den = sum((data[i] - mu)^2 for i in 1:n)
+  return num / den
+end
+
+#############################################
+## compute jack knife data
+function jackknife(data, bin_size)
+  n = length(data)
+  num_bins = div(n, bin_size)
+  binned_data = [mean(data[i:(i + bin_size - 1)]) for i in 1:bin_size:(num_bins * bin_size)]
+
+  jackknife_means = [mean(setdiff(binned_data, [binned_data[i]])) for i in 1:num_bins]
+  jackknife_mean = mean(jackknife_means)
+  jackknife_stderr = sqrt((num_bins - 1) * mean([(jackknife_means[i] - jackknife_mean)^2 for i in 1:num_bins]))
+
+  return jackknife_mean, jackknife_stderr
 end
 
 
