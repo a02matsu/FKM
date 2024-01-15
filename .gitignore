@@ -4,7 +4,6 @@ Ntau/
 Conf/
 Uconfig/
 EX/
-*.png
 Ex_N*.txt
 auto_parallel_simulation_TS.jl
 ._*
