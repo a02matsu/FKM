@@ -25,10 +25,10 @@ begin
     tmp = df[df.bin .> maxbin, :q] 
     pushfirst!(tmp,parse(Int,gamma))
     push!(removed_q,tmp )
-    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=2, alpha=0.8, label="\$\\gamma = $(gamma)\$")
+    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=4, markerstrokewidth=0.4, alpha=0.8, label="\$\\gamma = $(gamma)\$")
   end
   
-g = 16384
+g = 131072
 R = 0.53656
 
 #C1(g,s)  = 2*2*g^2*R^(6*s)
@@ -40,38 +40,43 @@ sc = log(1/(2*g)^(1/3))/log(R)
 
 x = 1.0:0.001:sc
 C(g,s)  = 1.5
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label="\$3\\times\$GWW (\$q>1\$)")
 
-x = sc:0.001:7
+x = sc:0.001:8.5
 C(g,s)  = 3*2*g^2*R^(6*s)
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label=nothing)
 
 x = 1-sc:0.001:0
 C(g,s)  = 1.5
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red, linestyle=:dot, label="simple reflection")
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label="flip of GWW")
 
 x = -8:0.001:1-sc
 C(g,s)  = 3*2*g^2*R^(6*(1-s))
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red, linestyle=:dot, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label=nothing)
 
 # Dual approximation
 g1(q) = 1/(6*q^3)-11/(72*q^5)+233/(864*q^7)
 g2(q) = 1/(12*q^3)-17/(144*q^5)+115/(576*q^7)
 
-sce1 = -4.605927568158268
-sce2 = -4.2325020832132205
+# g= 16384
+#sce1 = -4.605927568158268
+#sce2 = -4.2325020832132205
+
+g = 131072
+sce1 = -5.72039
+sce2 = -5.3487
 
 x = sce2:0.001:0
 C(g,s)  = 1.5
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label="dual approximation")
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:green2, label="dual approximation")
 
 x = sce1:0.001:sce2
 C(g,s)  = 1.0 + 2*g^2*g2(R^s)^2
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:green2, label=nothing)
 
-x = -6:0.001:sce1
+x = -7.5:0.001:sce1
 C(g,s)  = 2*2*g^2*g1(R^s)^2 + 2*g^2*g2(R^s)^2
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:green2, label=nothing)
 
   # 臨界帯
 plot!(x -> 0.0, 0.0, 1.0, fillrange=x -> 10.0, linealpha=0,
@@ -80,7 +85,7 @@ fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)"
   xlabel!(plt,"\$s\$")
   ylabel!(plt,"specific heat")
   ylims!(plt,(0.0, 2.0))
-  xlims!(plt,(-6,7))
+  xlims!(plt,(-7.5,8.5))
   plot!(plt, legend=:bottom)
   display(plt)
 end
