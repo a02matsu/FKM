@@ -14,7 +14,7 @@ begin
   
   removed_q = []
   
-  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 700), margin=20px)
+  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 550), margin=20px)
   for file in files
     df = DataFrame(CSV.File(file))
     # ファイル名からgammaを取得
@@ -40,7 +40,7 @@ sc = log(1/(2*g)^(1/3))/log(R)
 
 x = 1.0:0.001:sc
 C(g,s)  = 1.5
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label="\$3\\times\$GWW (\$q>1\$)")
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label="GWW approximation")
 
 x = sc:0.001:8.5
 C(g,s)  = 3*2*g^2*R^(6*s)
@@ -48,7 +48,7 @@ plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label=nothing)
 
 x = 1-sc:0.001:0
 C(g,s)  = 1.5
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label="flip of GWW")
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label="flip of GWW in \$s>1\$")
 
 x = -8:0.001:1-sc
 C(g,s)  = 3*2*g^2*R^(6*(1-s))
@@ -84,7 +84,7 @@ fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)"
 
   xlabel!(plt,"\$s\$")
   ylabel!(plt,"specific heat")
-  ylims!(plt,(0.0, 2.0))
+  ylims!(plt,(0.0, 1.8))
   xlims!(plt,(-7.5,8.5))
   plot!(plt, legend=:bottom)
   display(plt)

@@ -14,7 +14,7 @@ begin
   
   removed_q = []
   
-  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 700), margin=20px)
+  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 550), margin=20px)
   for file in files
     df = DataFrame(CSV.File(file))
     # ファイル名からgammaを取得
@@ -25,7 +25,7 @@ begin
     tmp = df[df.bin .> maxbin, :q] 
     pushfirst!(tmp,parse(Int,gamma))
     push!(removed_q,tmp )
-    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=2, alpha=0.8, label="\$\\gamma = $(gamma)\$")
+    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=4, markerstrokewidth=0.4, alpha=0.8, label="\$\\gamma = $(gamma)\$")
   end
   
 g = 16384
@@ -40,17 +40,17 @@ sc = log(1/(2*g)^(1/3))/log(R)
 sce = -7.15657
 
 x = sc:0.001:10.0
-plot!(plt, x, C1.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C1.(g,x), linewidth=2, linecolor=:blue2, label="GWW approximation")
 x = -10.0:0.001:1-sc
-plot!(plt, x, C1r.(g,x), linewidth=2, linecolor=:red, linestyle=:dot, label="simple reflection")
+plot!(plt, x, C1r.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label="flip of GWW in \$s>1\$")
 x = -10.0:0.001:sce
-plot!(plt, x, C1d.(g,x), linewidth=2, linecolor=:blue, label="dual approximation")
+plot!(plt, x, C1d.(g,x), linewidth=2, linecolor=:green2, label="dual approximation")
 x = 1.0:0.001:sc
-plot!(plt, x, C2.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C2.(g,x), linewidth=2, linecolor=:blue2, label=nothing)
 x = 1-sc:0.001:0
-plot!(plt, x, C2.(g,x), linewidth=2, linecolor=:red, linestyle=:dot, label=nothing)
+plot!(plt, x, C2.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label=nothing)
 x = sce:0.001:0
-plot!(plt, x, C2.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C2.(g,x), linewidth=2, linecolor=:green2, label=nothing)
 
 
   # 臨界帯
@@ -59,7 +59,7 @@ fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)"
 
   xlabel!(plt,"\$s\$")
   ylabel!(plt,"specific heat")
-  ylims!(plt,(0, 1.3))
+  ylims!(plt,(0, 1.2))
   xlims!(plt,(-10,11))
   plot!(plt, legend=:bottom)
   display(plt)

@@ -14,7 +14,7 @@ begin
   
   removed_q = []
   
-  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 700), margin=20px)
+  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 550), margin=20px)
   for file in files
     df = DataFrame(CSV.File(file))
     # ファイル名からgammaを取得
@@ -25,7 +25,7 @@ begin
     tmp = df[df.bin .> maxbin, :q] 
     pushfirst!(tmp,parse(Int,gamma))
     push!(removed_q,tmp )
-    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=2, alpha=0.8, label="\$\\gamma = $(gamma)\$")
+    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=4, markerstrokewidth=0.4, alpha=0.8, label="\$\\gamma = $(gamma)\$")
   end
   
 g = 16384
@@ -42,27 +42,27 @@ sce = -7.15657
 
 x = 1.0:0.001:sc2
 C(g,s)  = 1.0
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label="GWW approximation")
 
 x = sc2:0.001:sc1
 C(g,s)  = 0.5 + 2*g^2*R^(8*s)
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label=nothing)
 
 x = sc1:0.001:13.0
 C(g,s)  = 2*g^2*R^(6*s) + 2*g^2*R^(8*s)
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label=nothing)
 
 x = 1-sc2:0.001:0
 C(g,s)  = 1.0
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red, linestyle=:dot, label="simple reflection")
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label="flip of GWW in \$s>1\$")
 
 x = 1-sc1:0.001:1-sc2
 C(g,s)  = 0.5 + 2*g^2*R^(8*(1-s))
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red, linestyle=:dot, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label=nothing)
 
 x = -12:0.001:1-sc1
 C(g,s)  = 2*g^2*R^(6*(1-s)) + 2*g^2*R^(8*(1-s))
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red, linestyle=:dot, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:red2, linestyle=:dot, label=nothing)
 
 # Dual approximation
 g1(q) = 1/(4*q^3)-3/(16*q^5)+17/(64*q^7)-39/(256*q^9)
@@ -73,15 +73,15 @@ sce2 = -6.36667
 
 x = sce2:0.001:0
 C(g,s)  = 1.0
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label="dual approximation")
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:green2, label="dual approximation")
 
 x = sce1:0.001:sce2
 C(g,s)  = 0.5 + 2*g^2*g2(R^s)^2
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:green2, label=nothing)
 
 x = -12:0.001:sce1
 C(g,s)  = 2*g^2*g1(R^s)^2 + 2*g^2*g2(R^s)^2
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue, label=nothing)
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:green2, label=nothing)
 
 #x = sc:0.001:10.0
 #plot!(plt, x, C1.(g,x), linewidth=2, linecolor=:blue, label=nothing)
