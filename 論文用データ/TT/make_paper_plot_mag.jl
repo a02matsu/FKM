@@ -14,7 +14,7 @@ begin
   
   removed_q = []
   
-  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 550), margin=20px)
+  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(500, 500), margin=20px)
   for file in files
     df = DataFrame(CSV.File(file))
     # ファイル名からgammaを取得
@@ -25,7 +25,7 @@ begin
     tmp = df[df.bin .> maxbin, :q] 
     pushfirst!(tmp,parse(Int,gamma))
     push!(removed_q,tmp )
-    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=4, markerstrokewidth=0.4, alpha=0.8, label="\$\\gamma = $(gamma)\$")
+    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=4, markerstrokewidth=0.4, alpha=0.8, color="#C371D2", label="\$\\gamma = $(gamma)\$")
   end
   
 g = 131072
@@ -40,7 +40,7 @@ sc = log(1/(2*g)^(1/3))/log(R)
 
 x = 1.0:0.001:sc
 C(g,s)  = 1.5
-plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label="GWW approximation")
+plot!(plt, x, C.(g,x), linewidth=2, linecolor=:blue2, label=nothing)
 
 x = sc:0.001:8.5
 C(g,s)  = 3*2*g^2*R^(6*s)
@@ -88,7 +88,7 @@ fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)"
 #  xlims!(plt,(-7.5,8.5))
   ylims!(plt,(0.0, 1.8))
   xlims!(plt,(-6.5,-5.0))
-  plot!(plt, legend=:bottom)
+  plot!(plt, legend=:bottomright)
   display(plt)
 end
 savefig(plt,"./TT-SH.pdf")
