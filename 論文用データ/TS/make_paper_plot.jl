@@ -8,14 +8,20 @@ obs = "specificheat"
 N=16
 maxbin = 20 
 
+MarkerShapes = [:diamond, :hexagon, :circle]
+
 begin
   files0 = glob("論文用データ/TS/JN$(obs)_N$(N)*.csv")
   files = sort(files0, by=file -> parse(Int, match(r"g(\d+).csv", basename(file)).captures[1]))
   
   removed_q = []
   
-  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 550), margin=20px)
+  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(1000, 450), margin=20px)
+
+  i=0
+
   for file in files
+    global i += 1
     df = DataFrame(CSV.File(file))
     # ファイル名からgammaを取得
     gamma = match(r"g(\d+).csv", file).captures[1]
@@ -25,7 +31,7 @@ begin
     tmp = df[df.bin .> maxbin, :q] 
     pushfirst!(tmp,parse(Int,gamma))
     push!(removed_q,tmp )
-    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markersize=4, markerstrokewidth=0.4, alpha=0.8, label="\$\\gamma = $(gamma)\$")
+    scatter!(plt, df2.s, df2.jmean, yerror=df2.jerr, markershape=MarkerShapes[i], markersize=4, markerstrokewidth=0.4, alpha=0.8, label="\$\\gamma = $(gamma)\$")
   end
   
 g = 16384
