@@ -14,7 +14,7 @@ begin
   
   removed_q = []
   
-  plt = plot(xlabelfontsize=14, ylabelfontsize=14, size=(500, 500), margin=20px)
+  plt = plot(xlabelfontsize=14, ylabelfontsize=14, legendfontsize=10, size=(500, 500), margin=20px)
   for file in files
     df = DataFrame(CSV.File(file))
     # ファイル名からgammaを取得
@@ -79,8 +79,8 @@ C(g,s)  = 2*2*g^2*g1(R^s)^2 + 2*g^2*g2(R^s)^2
 plot!(plt, x, C.(g,x), linewidth=2, linecolor=:green2, label=nothing)
 
   # 臨界帯
-plot!(x -> 0.0, 0.0, 1.0, fillrange=x -> 10.0, linealpha=0,
-fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)")
+#plot!(x -> 0.0, 0.0, 1.0, fillrange=x -> 10.0, linealpha=0,
+#fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)")
 
   xlabel!(plt,"\$s\$")
   ylabel!(plt,"specific heat")
@@ -91,7 +91,7 @@ fillcolor=RGB(0.8, 0.8, 1), alpha=0.5, label="critical strip\n(unstable region)"
   plot!(plt, legend=:bottomright)
   display(plt)
 end
-savefig(plt,"./TT-SH.pdf")
+savefig(plt,"./TT-SH-mag.pdf")
 
 removed_q
 
